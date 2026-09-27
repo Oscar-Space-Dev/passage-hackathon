@@ -173,6 +173,7 @@ def health():
     return {'status': 'ok', 'name': 'Passage', 'version': '0.1.0'}
 
 @app.get('/api/state')
+@integrations.configuration_snapshot()
 def state(role: Role = 'lab'):
     require(role, {'lab', 'researcher', 'company', 'admin'})
     ts = [t for t in store.all_of('thesis') if role != 'company' or t['visible']]

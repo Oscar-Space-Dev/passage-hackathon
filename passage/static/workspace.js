@@ -202,15 +202,18 @@ function coordinatorSelect(selected=''){
 }
 async function newProject(){
   let options='<option value="codex:auto">ChatGPT · modèle par défaut de mon compte</option>';
-  try{
-    const status=await api('/brains/chatgpt/status');
-    if(status.connected){
-      const available=await api('/brains/chatgpt/models');
-      options+=available.models.map(model=>`<option value="codex:${esc(model.model)}">ChatGPT · ${esc(model.displayName||model.model)}</option>`).join('');
-    }
-  }catch{}
   options+='<option value="agent">Utiliser le fournisseur choisi dans l’agent coordinateur</option>';
   modal('Un projet, une équipe',`<form id="project-form">${textField('name','Nom du projet','','text',true)}${textArea('objective','Objectif et résultat attendu','',4)}${textArea('context','Contexte, contraintes et critères de réussite','',3)}${coordinatorSelect()}<div class="field"><label for="new-project-brain">Cerveau du projet</label><select id="new-project-brain" name="brain_choice">${options}</select></div><p class="hint">ChatGPT est sélectionné par défaut. Connectez ce même compte dans Connexions avant le premier échange réel ; aucun modèle local ne sera choisi automatiquement.</p><button class="btn" type="submit">Créer le projet</button></form>`,'','medium');
+  const brainSelect=$('#new-project-brain');
+  try{
+    const status=await api('/brains/chatgpt/status');
+    if(status.connected&&$('#new-project-brain')===brainSelect){
+      const available=await api('/brains/chatgpt/models');
+      if($('#new-project-brain')===brainSelect){
+        for(const model of available.models)brainSelect.add(new Option('ChatGPT · '+(model.displayName||model.model),'codex:'+model.model));
+      }
+    }
+  }catch{}
 }
 async function sendDialogue(text, conversationEpoch=null){
   const previousProjectId=S.project?.id;

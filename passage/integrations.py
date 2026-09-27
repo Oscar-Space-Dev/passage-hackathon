@@ -5,12 +5,28 @@ import os
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
+from contextvars import ContextVar
 from urllib.parse import urlparse
 import requests
 from dotenv import load_dotenv
 from . import store
 
 SESSION_SECRETS = {}
+CONFIGURATION_SNAPSHOT = ContextVar('passage_configuration_snapshot', default=None)
+
+@contextmanager
+def configuration_snapshot():
+    """Read encrypted installation settings once per operation, never globally."""
+    if CONFIGURATION_SNAPSHOT.get() is not None:
+        yield
+        return
+    rows = store.all_of('installation_setting') if store.remote_enabled() or store.db_path().exists() else []
+    token = CONFIGURATION_SNAPSHOT.set({row['id']: row for row in rows})
+    try:
+        yield
+    finally:
+        CONFIGURATION_SNAPSHOT.reset(token)
 SECRET_NAMES = {'OPENAI_API_KEY', 'DUST_API_KEY', 'PIPELEX_API_KEY', 'OSCAR_TOKEN', 'COMPATIBLE_API_KEY', 'GRADIUM_API_KEY', 'LATITUDE_API_KEY'}
 SETTING_NAMES = SECRET_NAMES | {'DUST_WORKSPACE_ID', 'DUST_BASE_URL', 'PIPELEX_METHOD_REF', 'COMPATIBLE_BASE_URL',
                                 'OSCAR_URL', 'OSCAR_MCP_SCRIPT', 'OSCAR_COMPANY', 'PASSAGE_OSCAR', 'OLLAMA_BASE_URL', 'GRADIUM_VOICE_ID', 'PASSAGE_PUBLIC_URL',
@@ -24,7 +40,8 @@ def env(name, default=''):
     if name in SESSION_SECRETS:
         return SESSION_SECRETS[name]
     if store.remote_enabled() or store.db_path().exists():
-        row = store.get('installation_setting', name)
+        snapshot = CONFIGURATION_SNAPSHOT.get()
+        row = snapshot.get(name) if snapshot is not None else store.get('installation_setting', name)
         if row:
             from .partner_mcp import cipher
             return cipher().decrypt(row['encrypted'].encode()).decode()
@@ -68,6 +85,7 @@ def headers(key):
         raise IntegrationError(f'Accès manquant : configurez {key} dans Connexions ou .env.')
     return {'Authorization': 'Bearer ' + value, 'Content-Type': 'application/json'}
 
+@configuration_snapshot()
 def statuses():
     return {'openai': bool(env('OPENAI_API_KEY')), 'dust': bool(env('DUST_API_KEY') and env('DUST_WORKSPACE_ID')),
             'pipelex': bool(env('PIPELEX_API_KEY')), 'compatible': bool(env('COMPATIBLE_BASE_URL')), 'ollama': True,

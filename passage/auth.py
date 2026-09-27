@@ -7,6 +7,7 @@ from contextvars import ContextVar
 from urllib.parse import urlparse
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
+from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 from . import integrations, store
 
@@ -146,7 +147,7 @@ def install(app):
                 return JSONResponse({'detail': 'Origine de requête refusée.'}, status_code=403)
         public_route = request.url.path in {'/api/health', '/api/auth/status', '/api/auth/login', '/api/auth/register',
                                             '/api/auth/google/start', '/api/auth/google/callback', '/api/mcp/oauth/callback'}
-        user, session = authenticate(request)
+        user, session = await run_in_threadpool(authenticate, request)
         if not public_route and not user:
             return JSONResponse({'detail': 'Connectez-vous pour continuer.'}, status_code=401)
         if not public_route and request.method not in ('GET', 'HEAD', 'OPTIONS'):
