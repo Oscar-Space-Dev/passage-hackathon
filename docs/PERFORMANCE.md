@@ -36,5 +36,23 @@ L'image Docker vérifie le lancement réel de Codex App Server sous l'utilisateu
 non privilégié de production avant de pouvoir être publiée. Un arrêt sans message
 du processus renvoie une erreur contrôlée au lieu d'une exception IndexError.
 
-Les nouvelles mesures de production seront ajoutées après déploiement. Un test
-local réussi ne constitue pas une mesure de latence du site public.
+## Mesures publiques après publication de `906644d`
+
+Le 27 septembre à 22 h 19 (Paris), appels HTTP authentifiés depuis le poste de
+développement, sans proxy, sur Render Free et Turso. Trois appels successifs :
+
+| Requête | Première mesure | Deuxième | Troisième |
+| --- | ---: | ---: | ---: |
+| `/api/state` | 1,796 s | 0,610 s | 0,609 s |
+| `/api/projects` | 0,281 s | 0,219 s | 0,391 s |
+| `/api/brains/chatgpt/status` | 0,297 s | 0,218 s | 0,204 s |
+
+Trois appels simultanés ont répondu en 0,968 s (état), 0,812 s (projets) et
+0,812 s (santé). Ce petit échantillon n'est pas un test de charge ni une garantie
+de temps maximal ; le réveil d'une instance Render inactive n'est pas mesuré.
+
+Le démarrage réel du parcours ChatGPT par code a répondu HTTP 200 en 1,657 s,
+avec les champs `loginId`, `type`, `userCode`, `verificationUrl` attendus. Le code
+n'a pas été imprimé ni conservé dans le dépôt. Ce contrôle vérifie le début de
+l'autorisation ; une approbation OpenAI et une réponse réelle de l'agent restent
+nécessaires pour valider une connexion utilisateur de bout en bout.
