@@ -600,7 +600,7 @@ def change_coordinator(identifier: str, body: CoordinatorInput):
         if current_run and current_run.get('status') in {'queued', 'running'}:
             raise HTTPException(409, 'Attendez la fin de la mission avant de changer de coordinateur.')
         agent = store.get('agent', body.coordinator_id)
-        if not agent or not agent.get('active') or agent.get('engine') != 'direct':
+        if not agents.visible(agent, auth.current()) or not agent.get('active') or agent.get('engine') != 'direct':
             raise HTTPException(422, 'Choisissez un agent direct actif pour coordonner le projet.')
         ids = list(project['agent_ids'])
         if agent['id'] not in ids:

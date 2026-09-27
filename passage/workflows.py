@@ -205,7 +205,7 @@ DOCUMENT_EXTENSIONS = {'markdown': '.md', 'latex': '.tex', 'python': '.py',
 
 
 def files(identifier):
-    return [row for row in store.all_of('work_file') if row['work_id'] == identifier]
+    return store.where('work_file', work_id=identifier)
 
 
 def file_path(file_id):
@@ -214,8 +214,11 @@ def file_path(file_id):
     if store.remote_enabled() and not path.is_file():
         manifest = store.get('work_blob', file_id)
         if manifest:
-            raw = b''.join(base64.b64decode(store.get('work_blob_chunk', f'{file_id}:{index:04d}')['data'])
-                           for index in range(manifest['chunks']))
+            chunks = store.get_many('work_blob_chunk',
+                                   [f'{file_id}:{index:04d}' for index in range(manifest['chunks'])])
+            if any(chunk is None for chunk in chunks):
+                raise RuntimeError('Pièce jointe distante incomplète.')
+            raw = b''.join(base64.b64decode(chunk['data']) for chunk in chunks)
             if hashlib.sha256(raw).hexdigest() != manifest['sha256']:
                 raise RuntimeError('Pièce jointe distante corrompue.')
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -444,33 +447,30 @@ def task(identifier, access='read'):
         raise HTTPException(403, 'Un autre membre invité doit donner cet avis.')
     if row['status'] == 'done' and not linked_sources_current(row):
         row.update(status='in_progress', approved_entry_id=None,
-                   revision=row['revision']+1, updated_at=store.now())
-        store.put('work_item', row)
+                   sources_outdated=True)
     if row['status'] == 'delegated' and row.get('run_id'):
         run = store.get('run', row['run_id'])
         if run and run['status'] in ('failed', 'interrupted'):
             row['status'] = 'in_progress'
             row['last_error'] = run.get('error') or 'La délégation a été interrompue.'
-            row['updated_at'] = store.now()
-            store.put('work_item', row)
+            # Effective state only. Reads must never overwrite a concurrent edit.
     return row
 
 
 def entries(identifier):
-    return [row for row in store.all_of('work_entry') if row['work_id'] == identifier]
+    return store.where('work_entry', work_id=identifier)
 
 
 def worksheet_versions(identifier):
-    return [row for row in store.all_of('work_worksheet_version')
-            if row['work_id'] == identifier]
+    return store.where('work_worksheet_version', work_id=identifier)
 
 
 def records(identifier):
-    return [row for row in store.all_of('work_record') if row['work_id'] == identifier]
+    return store.where('work_record', work_id=identifier)
 
 
 def anchors(identifier):
-    return [row for row in store.all_of('work_anchor') if row['work_id'] == identifier]
+    return store.where('work_anchor', work_id=identifier)
 
 
 def normalized_contains(source, quote):
@@ -609,7 +609,7 @@ def linked_source_excerpt(link):
 
 
 def documents(identifier):
-    return [row for row in store.all_of('work_document') if row['work_id'] == identifier]
+    return store.where('work_document', work_id=identifier)
 
 
 def document(identifier, document_id):
@@ -688,7 +688,7 @@ def checkpoint_scope(row):
 
 
 def step_check_history(work_id):
-    return [item for item in store.all_of('work_step_check') if item['work_id'] == work_id]
+    return store.where('work_step_check', work_id=work_id)
 
 
 def step_check_current(check):
@@ -735,7 +735,7 @@ def checkpoint_status(row):
     specs = work_catalog.BY_ID[row['type_id']]['checkpoints']
     if not specs:
         return []
-    records = [item for item in store.all_of('work_checkpoint') if item['work_id'] == row['id']]
+    records = store.where('work_checkpoint', work_id=row['id'])
     current_scope = checkpoint_scope(row)
     return [{**spec, 'valid': bool(record and record['scope_sha256'] == current_scope),
              'record': record} for spec in specs
@@ -817,7 +817,7 @@ def deliverable_template(row):
 
 
 def for_project(project_id):
-    return [public(task(row['id'])) for row in store.all_of('work_item') if row['project_id'] == project_id]
+    return [public(task(row['id'])) for row in store.where('work_item', project_id=project_id)]
 
 
 @router.get('/catalog')
@@ -1571,11 +1571,7 @@ def add_marguerite_note(identifier: str, title: str, content: str):
 
 def _add_entry(identifier: str, body: WorkEntry, origin: str):
     with projects.LOCK:
-        row = task(identifier)
-        if row['owner_id'] != auth.current()['id']:
-            share = next((item for item in row['shares'] if item['user_id'] == auth.current()['id']), None)
-            if not share or (share['role'] == 'reviewer' and body.kind not in ('note', 'evidence')):
-                raise HTTPException(403, 'Le relecteur peut seulement ajouter des notes et preuves.')
+        row = task(identifier, 'edit')
         if row['status'] == 'delegated':
             raise HTTPException(409, 'Attendez la proposition de l’agent avant de modifier ce travail.')
         if body.derived_from:
@@ -1602,7 +1598,7 @@ def _add_entry(identifier: str, body: WorkEntry, origin: str):
 @router.post('/tasks/{identifier}/files')
 def upload_file(identifier: str, body: WorkFileInput):
     with projects.LOCK:
-        row = task(identifier)
+        row = task(identifier, 'edit')
         if row['status'] == 'delegated':
             raise HTTPException(409, 'Attendez la proposition de l’agent avant d’ajouter un fichier.')
         if len(files(identifier)) >= 30:

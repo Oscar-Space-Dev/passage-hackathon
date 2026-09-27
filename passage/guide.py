@@ -3,6 +3,7 @@ import json
 import re
 import threading
 import unicodedata
+from weakref import WeakValueDictionary
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException
@@ -13,6 +14,18 @@ from .schemas import StrictModel
 
 router = APIRouter(prefix='/api/guide')
 LOCK = threading.RLock()
+USER_LOCKS = WeakValueDictionary()
+
+
+def conversation_lock():
+    """Serialize one user's plan transitions without blocking other accounts."""
+    user_id = auth.current()['id']
+    with LOCK:
+        lock = USER_LOCKS.get(user_id)
+        if lock is None:
+            lock = threading.RLock()
+            USER_LOCKS[user_id] = lock
+        return lock
 
 
 class GuideMessage(StrictModel):
@@ -209,7 +222,7 @@ def context_for(body, user):
 def state():
     user_id = auth.current()['id']
     profile = store.get('guide_profile', user_id)
-    with LOCK:
+    with conversation_lock():
         plan = reconcile_plan(latest_plan(user_id))
     return {'messages': history(user_id), 'plan': plan,
             'profile': profile['text'] if profile else ''}
@@ -345,7 +358,7 @@ def converse(body: GuideMessage):
     user = auth.current()
     if not codex_brain.configured():
         raise HTTPException(409, 'Connectez votre compte ChatGPT dans Connexions pour discuter avec Marguerite.')
-    with LOCK:
+    with conversation_lock():
         if body.project_id:
             projects.get(body.project_id)
         active = reconcile_plan(latest_plan(user['id']))
@@ -486,7 +499,7 @@ def execute_action(action, new_project_id, last_task_id, trace):
 @router.post('/plans/{identifier}/approve')
 def approve(identifier: str):
     user = auth.current()
-    with LOCK:
+    with conversation_lock():
         plan = store.get('guide_plan', identifier)
         if not plan or plan['user_id'] != user['id']:
             raise HTTPException(404, 'Plan introuvable.')
@@ -505,21 +518,21 @@ def approve(identifier: str):
             try:
                 result, new_project_id, last_task_id = execute_action(action, new_project_id, last_task_id, trace)
             except Exception as exc:
-                with LOCK:
+                with conversation_lock():
                     current = store.get('guide_plan', identifier)
                     current['status'] = 'failed'
                     current['results'].append({'index': index, 'label': action['label'],
                         'status': 'failed', 'error': integrations.safe_error(exc)})
                     store.put('guide_plan', current)
                 raise
-            with LOCK:
+            with conversation_lock():
                 current = store.get('guide_plan', identifier)
                 current['results'].append({'index': index, 'label': action['label'],
                                            'status': 'running' if result.get('run_id') else 'done',
                                            'result': result})
                 store.put('guide_plan', current)
             trace(action['label'])
-        with LOCK:
+        with conversation_lock():
             current = store.get('guide_plan', identifier)
             current['status'] = ('awaiting_runs' if any(r['status'] == 'running' for r in current['results'])
                 else 'needs_review' if current.get('human_steps') or
@@ -534,11 +547,11 @@ def approve(identifier: str):
         run = start_job('guide', 'Marguerite · plan approuvé', work, user['role'],
                         {'guide_plan_id': identifier})
     except Exception:
-        with LOCK:
+        with conversation_lock():
             plan['status'] = 'pending'
             store.put('guide_plan', plan)
         raise
-    with LOCK:
+    with conversation_lock():
         current = store.get('guide_plan', identifier)
         current['run_id'] = run['id']
         store.put('guide_plan', current)
@@ -548,7 +561,7 @@ def approve(identifier: str):
 @router.post('/plans/{identifier}/reject')
 def reject(identifier: str):
     user = auth.current()
-    with LOCK:
+    with conversation_lock():
         plan = store.get('guide_plan', identifier)
         if not plan or plan['user_id'] != user['id']:
             raise HTTPException(404, 'Plan introuvable.')

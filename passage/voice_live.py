@@ -10,7 +10,7 @@ import gradbot
 import gradbot.websocket
 from fastapi import APIRouter, HTTPException, WebSocket
 
-from . import auth, codex_brain, guide, integrations, projects, store, voice, voice_codex
+from . import agents, auth, codex_brain, guide, integrations, projects, store, voice, voice_codex
 
 router = APIRouter()
 ACTIVE = set()
@@ -150,7 +150,7 @@ async def live_voice(socket: WebSocket, project_id: str | None = None, guide_mod
             brain = projects.effective_brain(project)
         else:
             base = next((agent for agent in store.all_of('agent')
-                         if agent.get('active') and agent.get('engine') == 'direct'), None)
+                         if agents.visible(agent, user) and agent.get('active') and agent.get('engine') == 'direct'), None)
             brain = {**base, 'provider': 'codex', 'model': 'auto'} if base else None
         provider = brain.get('provider') if brain else None
         local_explicit = bool(not guide_mode and project and project.get('brain_provider') == 'agent'
@@ -261,7 +261,7 @@ async def live_voice(socket: WebSocket, project_id: str | None = None, guide_mod
                 job = None
                 if run:
                     for _ in range(1200):
-                        job = store.get('run', run['id'])
+                        job = await asyncio.to_thread(store.get, 'run', run['id'])
                         if job and job['status'] not in {'queued', 'running'}:
                             break
                         await asyncio.sleep(0.5)

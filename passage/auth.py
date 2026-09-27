@@ -97,7 +97,7 @@ def register(body: Credentials, request: Request):
 def login(body: Credentials, request: Request):
     email = body.email.strip().casefold()
     throttle(request, email)
-    user = next((u for u in store.all_of('user') if u['email']==email), None)
+    user = next(iter(store.where('user', email=email)), None)
     saved = user.get('password_hash') if user else None
     saved = saved or ('00'*16+':'+'00'*32)
     valid = hmac.compare_digest(password_hash(body.password, saved.split(':')[0]), saved)

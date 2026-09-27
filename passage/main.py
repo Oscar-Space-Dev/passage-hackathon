@@ -63,6 +63,12 @@ def require(role, allowed):
     if role not in allowed:
         raise HTTPException(403, 'Ce profil ne peut pas effectuer cette action dans le POC.')
 
+
+def require_catalog_editor():
+    """The shared catalogue belongs to the installation, not to new lab accounts."""
+    if integrations.env('PASSAGE_PUBLIC_SIGNUP') == '1' and auth.current()['role'] != 'admin':
+        raise HTTPException(403, 'Le catalogue commun et les réglages du laboratoire sont gérés par l’administrateur.')
+
 def item(kind, identifier):
     result = store.get(kind, identifier)
     if result is None:
@@ -213,6 +219,7 @@ def visit(identifier: str, role: Role = 'company'):
 
 @app.patch('/api/theses/{identifier}/visibility')
 def visibility(identifier: str, body: VisibilityInput, role: Role = 'lab'):
+    require_catalog_editor()
     require(role, {'lab'})
     t = thesis(identifier, role)
     t.update(visible=body.visible, publication_at=store.now(), publication_actor='Directeur — rôle joué dans le POC')
@@ -222,6 +229,7 @@ def visibility(identifier: str, body: VisibilityInput, role: Role = 'lab'):
 
 @app.patch('/api/theses/{identifier}/correction')
 def correction(identifier: str, body: CorrectionInput, role: Role = 'researcher'):
+    require_catalog_editor()
     require(role, {'researcher', 'lab'})
     t = thesis(identifier, role)
     store.put('correction', {'id': store.uid('corr_'), 'thesis_id': identifier, 'previous': t.get('correction', ''), 'summary': body.summary, 'actor': role, 'at': store.now()})
@@ -232,12 +240,14 @@ def correction(identifier: str, body: CorrectionInput, role: Role = 'researcher'
 
 @app.post('/api/import')
 def import_theses(body: ImportInput, role: Role = 'lab'):
+    require_catalog_editor()
     require(role, {'lab'})
     return start_job('import', 'Import theses.fr — ' + body.query,
                      lambda trace: sources.import_lab(body.query, body.lab_filter, body.limit, trace), role)
 
 @app.patch('/api/laboratory')
 def laboratory(body: dict, role: Role = 'lab'):
+    require_catalog_editor()
     require(role, {'lab'})
     settings = item('settings', 'main')
     for key in ['lab_name', 'lab_short', 'city']:

@@ -4,6 +4,7 @@ import sqlite3
 import threading
 import time
 import copy
+import re
 import uuid
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -127,6 +128,8 @@ def init():
         if not remote_enabled():
             c.execute('PRAGMA journal_mode=WAL')
         c.execute('CREATE TABLE IF NOT EXISTS objects (kind TEXT, id TEXT, body TEXT NOT NULL, PRIMARY KEY(kind,id))')
+        for field in ('project_id', 'owner_id', 'work_id', 'user_id', 'email'):
+            c.execute(f"CREATE INDEX IF NOT EXISTS objects_{field} ON objects(kind,json_extract(body,'$.{field}'))")
         c.execute('CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT, action TEXT, subject TEXT, detail TEXT)')
 
 def put(kind, obj, conn=None):
@@ -168,6 +171,34 @@ def all_of(kind):
         return copy.deepcopy(list(snapshot[0][kind].values()))
     with reader() as c:
         return [json.loads(r[0]) for r in c.execute('SELECT body FROM objects WHERE kind=? ORDER BY rowid', (kind,)).fetchall()]
+
+
+def where(kind, **fields):
+    """Filter JSON fields in SQL. Values are bound; field names are validated."""
+    if any(not re.fullmatch(r'[a-z][a-z0-9_]*', field) for field in fields):
+        raise ValueError('Invalid storage field')
+    snapshot = READ_SNAPSHOT.get()
+    if snapshot is not None and kind in snapshot[0]:
+        return [row for row in all_of(kind) if all(row.get(k) == v for k, v in fields.items())]
+    clauses = ''.join(f" AND json_extract(body,'$.{field}') IS ?" for field in fields)
+    with reader() as c:
+        rows = c.execute('SELECT body FROM objects WHERE kind=?' + clauses + ' ORDER BY rowid',
+                         (kind, *fields.values())).fetchall()
+    return [json.loads(row[0]) for row in rows]
+
+
+def get_many(kind, identifiers):
+    """Fetch bounded file chunks in one round trip, preserving caller order."""
+    identifiers = list(identifiers)
+    if not identifiers:
+        return []
+    if len(identifiers) > 500:
+        raise ValueError('Too many storage identifiers')
+    with reader() as c:
+        rows = c.execute('SELECT id,body FROM objects WHERE kind=? AND id IN (' +
+                         ','.join('?' for _ in identifiers) + ')', (kind, *identifiers)).fetchall()
+    values = {identifier: json.loads(body) for identifier, body in rows}
+    return [values.get(identifier) for identifier in identifiers]
 
 def event(action, subject='', detail=''):
     with transaction() as c:

@@ -270,10 +270,13 @@ def mcp(connector, tool=None, arguments=None):
 def oscar(tool, arguments=None):
     if tool not in {'oscar_projets', 'oscar_contexte', 'oscar_deposer_avis'}:
         raise IntegrationError('Outil Oscar non autorisé.')
+    if env('PASSAGE_PUBLIC_SIGNUP') == '1':
+        raise IntegrationError('Les scripts MCP locaux sont désactivés sur cette installation publique.')
     script = env('OSCAR_MCP_SCRIPT')
     if not script or not env('OSCAR_TOKEN'):
         raise IntegrationError('Configurez le chemin du serveur MCP Oscar et son jeton d’agent.')
-    child_env = {**os.environ, 'OSCAR_API': env('OSCAR_URL', 'http://127.0.0.1:8000'),
+    child_env = {**{k: os.environ[k] for k in ('PATH', 'SYSTEMROOT', 'TEMP', 'TMP') if k in os.environ},
+                 'OSCAR_API': env('OSCAR_URL', 'http://127.0.0.1:8000'),
                  'OSCAR_JETON': env('OSCAR_TOKEN'), 'OSCAR_COMPANY': env('OSCAR_COMPANY', '1'), 'OSCAR_SANS_TROUSSEAU': '1', 'PYTHONIOENCODING': 'utf-8'}
     messages = [{'jsonrpc': '2.0', 'id': 1, 'method': 'initialize', 'params': {'protocolVersion': '2024-11-05', 'capabilities': {}, 'clientInfo': {'name': 'Passage', 'version': '0.1'}}},
                 {'jsonrpc': '2.0', 'method': 'notifications/initialized'},
