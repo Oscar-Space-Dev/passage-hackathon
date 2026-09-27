@@ -9,6 +9,8 @@ tmpguide*/
 pytest-*/
 diagram-ui/
 diagram-ui/node_modules/
+demo/
+.tmp/
 .pipelex/
 examples/
 scripts/
