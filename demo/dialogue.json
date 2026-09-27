@@ -1,0 +1,10 @@
+[
+  {"speaker":"scientifique","text":"Marguerite, je prépare une thèse et dois tester un programme d’analyse de données. Il me faut un protocole, du code et des preuves de reproductibilité. Comment organiser tout cela sans perdre la trace de mes décisions ?"},
+  {"speaker":"marguerite","text":"Commencez par créer un projet avec votre question et le résultat attendu. Parmi trente-deux parcours de recherche, choisissez la conception d’expérience et le code scientifique. Chaque tâche détaille ses entrées, ses questions et son livrable."},
+  {"speaker":"scientifique","text":"Et toi, que peux-tu faire ? Je veux que les agents m’aident vraiment, mais je dois garder le contrôle des hypothèses et du travail lancé."},
+  {"speaker":"marguerite","text":"Je propose d’organiser votre projet, de créer les tâches, de définir les contrôles et de choisir les agents. Vous voyez mon plan avant de l’approuver. Dans chaque dossier, nous conservons les données, les brouillons, les versions, les décisions et les erreurs. Rien n’est déclaré scientifiquement validé automatiquement."},
+  {"speaker":"scientifique","text":"Je peux dessiner le protocole ? Je veux montrer les étapes, les décisions et les transitions, puis préparer une méthode que mon équipe pourra relire."},
+  {"speaker":"marguerite","text":"Oui. Dessinez dans Excalidraw intégré ; le schéma est versionné. Un agent peut en préparer un protocole ou un brouillon Pipelex, jamais une méthode publiée sans vous. Pour le programme, gardez le code Python ou R et ses tests dans un document versionné, puis joignez vos preuves."},
+  {"speaker":"scientifique","text":"Et le cerveau des agents ? Puis-je partager une tâche avec mon directeur sans exposer tout mon projet ? Comment se relient les autres outils ?"},
+  {"speaker":"marguerite","text":"Chaque agent possède votre cerveau ChatGPT et un harnais contrôlé : mission, compétences, mémoire et outils. Le relecteur voit seulement la tâche invitée. Gradium nous donne la voix ; Dust et Pipelex exigent vos autorisations MCP. Le SDK Jinkō demande votre projet et votre clé. Le code, les tests et leurs limites sont publics. Essayez Passage."}
+]

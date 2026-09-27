@@ -1,5 +1,11 @@
 # Vidéo de candidature Passage — 2 minutes maximum
 
+## Montage livré : dialogue illustré, 98,57 secondes
+
+La [vidéo MP4](demo/Passage_demo.mp4) met en scène un scientifique en blouse, cheveux en bataille et barbe de quelques jours, face à Marguerite. Leurs répliques alternent sur huit scènes. La voix du scientifique utilise l’identifiant Gradium `l2nzlZ4fcaobSwPk` choisi par l’auteur ; Marguerite reprend la voix Gradium `FXxJ9mANRq6BCTX5` de Passage. Les personnages originaux sont animés par un léger mouvement vertical. Le montage a été décodé et sa durée mesurée à 1 min 38,57 s. Le dialogue exact est dans [demo/dialogue.json](demo/dialogue.json) ; les durées de chaque réplique sont dans [demo/dialogue_timing.json](demo/dialogue_timing.json).
+
+Il s’agit d’une **présentation illustrée**, sans capture d’une exécution externe réussie. Les scènes Dust, Pipelex et Jinkō expliquent les connexions et leurs conditions. Les images et les dialogues ne prétendent pas montrer une expérience scientifique exécutée ni une réponse en direct d’un fournisseur non vérifié.
+
 **Angle :** suivre un doctorant qui passe d’une question de recherche à un travail vérifiable avec une équipe d’agents. Montrer une action réellement disponible, sa validation et sa trace. La voix off est générée avec Gradium ; les captures montrent Passage, sans clé ni donnée privée.
 
 | Temps cible | Écran | Idée à transmettre |
@@ -26,3 +32,19 @@ Le texte exact est conservé dans [demo/voix-off.txt](demo/voix-off.txt). La voi
 2. Masquer clés, adresses privées et données confidentielles ; utiliser un projet de démonstration.
 3. Vérifier les badges « réel »/« simulation » et l’état des exécutions avant d’enregistrer.
 4. Ajouter l’URL publique de la vidéo et du dépôt dans le formulaire ; relire chaque réponse avant soumission.
+
+## Proposition à valider pour la vidéo finale — 116 secondes
+
+**Fil conducteur :** une doctorante veut concevoir un protocole pour tester un programme d’analyse de données de recherche. Passage doit transformer cette demande en travail contrôlable, pas annoncer un résultat scientifique sans preuve. Filmer le vrai site publié, utiliser des données de démonstration et monter les temps d’attente. Les sorties d’agents montrées doivent provenir d’une exécution réelle datée ; si la connexion personnelle ChatGPT n’est pas prête, filmer seulement les écrans dont le fonctionnement est vérifié. La voix choisie est `l2nzlZ4fcaobSwPk` dans Gradium. Cette proposition n’est pas encore validée par l’auteur.
+
+| Temps | Écran / action à filmer | Voix proposée |
+| --- | --- | --- |
+| 0–12 s | Passage, doctorante, demande précise dans Marguerite. | « Je prépare une thèse et je dois tester un programme qui analyse mes données. Par où commencer, et comment garder des preuves de ce que j’ai vérifié ? » |
+| 12–29 s | Marguerite restitue le besoin et propose un plan ; gros plan sur **Valider et exécuter**. | « Marguerite ne prétend pas que le programme fonctionne déjà. Elle découpe ma demande : cadrer les données, définir le protocole, préparer les tests et garder une trace des décisions. Je vois chaque action avant de l’autoriser. » |
+| 29–46 s | Validation, projet et tâche R1 créés ; ouvrir le dossier. | « J’approuve. Passage organise le projet et ouvre un travail doctoral avec les questions à résoudre, les pièces attendues et les contrôles qui restent à ma charge. » |
+| 46–63 s | Atelier : agent spécialisé, cerveau ChatGPT, harnais, doctrine Super Skill Facilitator ; montrer le refus d’une définition incomplète seulement si recette obtenue. | « Pour ce travail, Marguerite peut préparer un agent spécialisé. Son cerveau est mon compte ChatGPT ; son harnais décrit mission, sources, mémoire, compétences et outils. Sa définition est versionnée et contrôlée avant usage. » |
+| 63–82 s | Dessin du protocole dans l’éditeur Excalidraw ; formalisation en brouillon `.mthds`. | « Je dessine les étapes du test. Passage conserve le schéma et aide à le formaliser en protocole ou en brouillon de méthode Pipelex. Je relis le document avant toute publication ou exécution externe. » |
+| 82–101 s | Dossier : source, brouillon, version, preuve, point de validation ; si possible résultat d’une action réelle. | « Le résultat reste dans le dossier, avec ses sources, ses versions et ce qui manque encore. L’agent prépare ; moi, je vérifie les données, décide si le test est valable et valide le livrable. » |
+| 101–116 s | Connexions et code : voix Gradium active, MCP Dust/Pipelex, adaptateur Jinkō, test d’isolation des comptes, lien GitHub public. | « Gradium donne la voix à Passage. Dust et Pipelex enrichissent les outils avec des autorisations explicites ; le SDK Jinkō est prévu pour lire un projet connecté. Le code, les tests et leurs limites sont publics. Essayez Passage avec votre propre compte. » |
+
+**Montage :** durée cible 116 s, deux secondes de marge ; la narration doit être régénérée avec la voix choisie après validation du texte. Montrer au moins une transition réelle plan → accord → action → preuve. Inscrire à l’image « brouillon à vérifier » sur le `.mthds` et « compte Jinkō réel à connecter » sur le SDK tant que sa recette n’est pas faite. Ne pas simuler un succès de Marguerite, de Dust, de Pipelex ou de Jinkō. L’ancienne vidéo illustrée de 77 s reste une maquette de présentation, pas la preuve de ce parcours.
