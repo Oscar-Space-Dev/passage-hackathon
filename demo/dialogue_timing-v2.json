@@ -45,6 +45,12 @@
     "scene": 7,
     "speaker": "marguerite",
     "start": 87.3,
-    "duration": 23.6
+    "duration": 23.82
+  },
+  {
+    "scene": 8,
+    "speaker": "scientifique",
+    "start": 111.12,
+    "duration": 7.76
   }
 ]

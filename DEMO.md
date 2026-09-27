@@ -1,8 +1,8 @@
 # Vidéo de candidature Passage — 2 minutes maximum
 
-## Version actuelle : animation en collage, 110,9 secondes
+## Version actuelle : animation en collage, 118,9 secondes
 
-La [vidéo finale en collage](demo/Passage_demo_collage.mp4) suit le scientifique narrateur et ses échanges avec Marguerite. Des éléments de papier découpé montrent la circulation du travail : besoin → plan soumis à approbation → lecteur de sources → agent protocole → agent code → retour au coordinateur → preuves → décision humaine. Les outils et leurs droits apparaissent dans le dossier partagé. Les voix Gradium sont distinctes : `l2nzlZ4fcaobSwPk` pour le scientifique et `FXxJ9mANRq6BCTX5` pour Marguerite. Les sept transitions image/voix ont été contrôlées de part et d’autre de chaque frontière ; leur décalage maximal calculé est inférieur à 0,04 seconde.
+La [vidéo finale en collage](demo/Passage_demo_collage.mp4) suit le scientifique narrateur et ses échanges avec Marguerite. Des éléments de papier découpé montrent la circulation du travail : besoin → plan soumis à approbation → lecteur de sources → agent protocole → agent code → retour au coordinateur → preuves → décision humaine. Une dernière scène ouvre sur les autres usages : direction de thèse et relecture, laboratoire et coordination, ingénierie et tests, entreprise et transfert. Les outils et leurs droits apparaissent dans le dossier partagé. Les voix Gradium sont distinctes : `l2nzlZ4fcaobSwPk` pour le scientifique et `FXxJ9mANRq6BCTX5` pour Marguerite. Le montage suit directement les neuf clips vocaux et leurs horodatages pour aligner le personnage et la voix à chaque scène.
 
 Le script exact est dans [demo/dialogue-v2.json](demo/dialogue-v2.json), les temps dans [demo/dialogue_timing-v2.json](demo/dialogue_timing-v2.json), et le montage reproductible dans [demo/build_video_collage.py](demo/build_video_collage.py). Il s’agit d’une animation pédagogique, pas d’une capture d’exécution d’un fournisseur tiers. La version précédente reste archivée dans [demo/Passage_demo.mp4](demo/Passage_demo.mp4).
 

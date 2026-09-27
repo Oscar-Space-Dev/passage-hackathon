@@ -107,7 +107,8 @@ def draw_scene(img, scene, p, t, man, woman):
         ('Et si quelque chose manque ?', 'Les hypothèses et les erreurs restent visibles'),
         ('Le travail devient vérifiable', 'Schéma, brouillon, sources et preuves circulent'),
         ('Partager sans tout exposer', 'Une tâche choisie et des droits explicites'),
-        ('Une boucle de travail', 'Planifier, déléguer, relire et décider')]
+        ('Une boucle de travail', 'Planifier, déléguer, relire et décider'),
+        ('Un outil, plusieurs métiers', 'Chaque rôle mobilise ses agents dans son projet')]
     title, sub = headings[scene]
     d.text((margin, 64), title, font=font(32, True), fill=INK)
     d.text((margin, 105), sub, font=font(17), fill='#5D7268')
@@ -189,7 +190,7 @@ def draw_scene(img, scene, p, t, man, woman):
         d.text((284, 303), 'Conversations : privées', font=font(18, True), fill='#A45742')
         d.text((284, 347), 'Outils : accès explicites', font=font(18, True), fill=TEAL)
         stamp(d, 'Dust  ·  Pipelex  ·  Gradium  ·  Jinkō', 262, 392)
-    else:
+    elif scene == 7:
         center = (447, 293)
         orb(d, *center, 52, 'VOUS', '#BA684E')
         nodes = [('PLAN', 423, 182), ('AGENTS', 593, 226), ('PREUVES', 603, 377),
@@ -201,6 +202,20 @@ def draw_scene(img, scene, p, t, man, woman):
                 nxt = nodes[(i+1)%len(nodes)]
                 arrow(d, (x, y), (nxt[1], nxt[2]), (p-.25-i*.06)*2, '#D28E55', 2)
         stamp(d, 'Le projet avance, le chercheur décide', 220, 467)
+    else:
+        uses = [('Direction de thèse', 'Relire et commenter'),
+                ('Laboratoire', 'Coordonner une équipe'),
+                ('Ingénierie', 'Tester et documenter'),
+                ('Entreprise', 'Explorer le transfert')]
+        for i, (role, use) in enumerate(uses):
+            x = 392 + (i % 2) * 250
+            y = 228 + (i // 2) * 143
+            card(img, role, use, x, y, 218, 102,
+                 angle=(-4, 3, 2, -3)[i],
+                 color=('#FFFDF5', '#E7F1DF', '#F8EBCB', '#F7E5D9')[i],
+                 reveal=(p - i * .15) * 4)
+        if p > .67:
+            stamp(d, 'Des agents au service du travail réel', 295, 454)
     # Small moving paper fragments give the collage a continuous handmade motion.
     for i in range(12):
         x = int((i*77 + 17 + t*6) % W)

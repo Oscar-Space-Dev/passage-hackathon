@@ -24,7 +24,7 @@ Le déploiement Render exige une base Turso externe pour conserver comptes et pr
 
 **Recette publique du 27 septembre 2026 :** inscriptions, création d’un projet et d’un fichier, sauvegarde d’un schéma, invitation liée à son destinataire et refus d’accès entre comptes vérifiés sur Render. Les données ont survécu à un redéploiement. Un compte laboratoire créé publiquement ne peut pas modifier le catalogue commun. Gradium a renvoyé un vrai fichier audio à un compte sans clé personnelle. La génération et le renouvellement d’un code de connexion ChatGPT répondent ; une réponse réelle de Marguerite sur un compte évaluateur reste à vérifier.
 
-**Présentation :** [vidéo d’animation en collage, 111 secondes](demo/Passage_demo_collage.mp4) · [dossier Word](demo/Passage_dossier_hackathon.docx) · [scénario et voix](DEMO.md). Le scientifique sert de fil narrateur ; Marguerite montre comment les agents coopèrent dans un projet. La vidéo illustre les parcours ; elle ne constitue pas une capture d’exécutions de fournisseurs externes.
+**Présentation :** [vidéo d’animation en collage, 119 secondes](demo/Passage_demo_collage.mp4) · [dossier Word](demo/Passage_dossier_hackathon.docx) · [scénario et voix](DEMO.md). Le scientifique sert de fil narrateur ; Marguerite montre comment les agents coopèrent dans un projet. La conclusion présente aussi la relecture par la direction de thèse, la coordination au laboratoire, les tests en ingénierie et l’exploration du transfert en entreprise. La vidéo illustre les parcours ; elle ne constitue pas une capture d’exécutions de fournisseurs externes.
 
 ## Guide de prise en main et de configuration
 
