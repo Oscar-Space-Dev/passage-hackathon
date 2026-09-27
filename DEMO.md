@@ -14,6 +14,8 @@
 
 **Durée visée :** 81 secondes, générique compris, pour une narration Gradium mesurée à 75,9 secondes. Prévoir des captures montées et de légers zooms ; ne pas attendre un appel LLM pendant l’enregistrement. Si un résultat est déjà préparé, afficher sa date et son état réel. Ne pas montrer Jinkō comme intégré avant un essai SDK réussi. Ne pas affirmer que Dust ou Pipelex exécute un agent à partir de Passage si seule la connexion MCP est démontrée.
 
+Une première version illustrée, [demo/Passage_demo_76s.mp4](demo/Passage_demo_76s.mp4), est disponible. Elle dure 76,97 secondes, contient la narration Gradium réelle et sert de base au montage final avec des captures du service publié.
+
 ## Voix off
 
 Le texte exact est conservé dans [demo/voix-off.txt](demo/voix-off.txt). La voix Gradium est enregistrée dans `demo/voix-off.wav` (75,9 secondes). Ajuster le montage à l’audio, puis exporter un MP4 de moins de deux minutes. Vérifier la lecture sonore avant l’envoi.

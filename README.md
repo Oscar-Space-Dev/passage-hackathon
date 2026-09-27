@@ -80,6 +80,8 @@ La connexion Google est optionnelle : elle n’apparaît que si `GOOGLE_CLIENT_I
 - [Parcours des 32 tâches R1–R3](PARCOURS_R1_R3.md)
 - [Usages des personas R1–R5](USAGES_PASSAGE_R1_R5.md)
 - [Scénario vidéo et narration](DEMO.md)
+- [Dossier Word pour le jury](demo/Passage_dossier_hackathon.docx)
+- [Première vidéo de 77 secondes avec voix Gradium](demo/Passage_demo_76s.mp4)
 - [Latitude auto-hébergé](LATITUDE_SELFHOST.md)
 
 **Licences et provenance :** l’éditeur de dessin embarque Excalidraw sous licence MIT, conservée dans [LICENSE-EXCALIDRAW.txt](passage/static/diagram/LICENSE-EXCALIDRAW.txt). Les notices initiales renvoient à leurs sources publiques. Oscar-AI reste un projet antérieur distinct.
