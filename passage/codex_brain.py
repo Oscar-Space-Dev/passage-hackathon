@@ -304,7 +304,7 @@ def status():
         raise HTTPException(502,str(exc))
 
 
-def begin_login(kind):
+def begin_login(kind, restart=False):
     try:
         user_id=auth.current()['id']
         engine, account=account_with_reconnect(user_id, client(user_id))
@@ -314,7 +314,7 @@ def begin_login(kind):
                 engine.login_created_at=0.0
                 return {'connected':True}
             previous=engine.login
-            if previous and (previous.get('type')!=kind or
+            if previous and (restart or previous.get('type')!=kind or
                              time.monotonic()-engine.login_created_at>300):
                 if previous.get('loginId'):
                     engine.request('account/login/cancel',{'loginId':previous['loginId']},timeout=10)
@@ -337,8 +337,8 @@ def connect():
 
 
 @router.post('/connect-device')
-def connect_device():
-    return begin_login('chatgptDeviceCode')
+def connect_device(restart: bool = False):
+    return begin_login('chatgptDeviceCode', restart=restart)
 
 
 @router.post('/disconnect')

@@ -478,11 +478,17 @@ async function workspaceClick(action,b){
     return true;
   }
   if(action==='research-prompt'){const input=$('#chat-input');if(input){input.value=b.dataset.prompt||'';input.focus();}return true;}
-  if(action==='chatgpt-connect'||action==='chatgpt-connect-device'){
-    const login=await post('/brains/chatgpt/'+(action==='chatgpt-connect-device'?'connect-device':'connect'));
-    if(login.connected){await loadBrainAccounts();return true;}
-    const el=$('#chatgpt-login');if(el)el.innerHTML=chatgptLoginHtml(login);
-    return true;
+  if(['chatgpt-connect','chatgpt-connect-device','chatgpt-renew-code'].includes(action)){
+    if(b.disabled)return true;
+    const previous=b.innerHTML;
+    b.disabled=true;b.textContent='Préparation de la connexion…';
+    try{
+      const endpoint=action==='chatgpt-connect'?'connect':action==='chatgpt-renew-code'?'connect-device?restart=true':'connect-device';
+      const login=await post('/brains/chatgpt/'+endpoint);
+      if(login.connected){await loadBrainAccounts();return true;}
+      const el=$('#chatgpt-login');if(el)el.innerHTML=chatgptLoginHtml(login);
+      return true;
+    }finally{b.disabled=false;b.innerHTML=previous;}
   }
   if(action==='chatgpt-refresh'){await loadBrainAccounts();return true;}
   if(action==='chatgpt-disconnect'){await post('/brains/chatgpt/disconnect');await loadBrainAccounts();return true;}
@@ -547,7 +553,7 @@ function chatgptLoginHtml(login){
   let url='';
   try{const parsed=new URL(value);if(parsed.protocol==='https:'&&['chatgpt.com','auth.openai.com'].includes(parsed.hostname))url=parsed.href;}catch{}
   if(!url)return '<p class="notice error">Lien de connexion inattendu. Relancez la connexion.</p>';
-  if(login.type==='chatgptDeviceCode')return `<p>Ouvrez la page officielle puis saisissez ce code :</p><p><code class="login-code">${esc(login.userCode||'')}</code></p><a class="btn secondary" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Ouvrir la page de connexion</a><p class="hint">Revenez ensuite cliquer sur « Vérifier la connexion ».</p>`;
+  if(login.type==='chatgptDeviceCode')return `<p>Ouvrez la page officielle puis saisissez ce code :</p><p><code class="login-code">${esc(login.userCode||'')}</code></p><a class="btn secondary" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Ouvrir la page de connexion</a><p class="hint">Si OpenAI demande d’activer la connexion par code d’appareil, ouvrez les paramètres de sécurité ChatGPT depuis son message, activez cette option, puis générez un nouveau code ici.</p>${button('Générer un nouveau code','chatgpt-renew-code',null,'secondary small')}<p class="hint">Après validation chez OpenAI, revenez cliquer sur « Vérifier la connexion ».</p>`;
   return `<a class="btn secondary" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Ouvrir la connexion ChatGPT</a><p class="hint">Revenez ensuite cliquer sur « Vérifier la connexion ». Si le retour local ne fonctionne pas, utilisez le code d’appareil.</p>`;
 }
 async function workspaceSubmit(f,data){

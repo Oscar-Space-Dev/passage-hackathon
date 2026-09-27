@@ -37,6 +37,10 @@ def test_device_login_replaces_browser_flow_and_reuses_pending_code(client, monk
     assert again.status_code == 200 and again.json()['loginId'] == device.json()['loginId']
     assert [method for method, _ in fake.calls].count('account/login/start') == 2
     assert ('account/login/cancel', {'loginId':'chatgpt-id'}) in fake.calls
+    renewed = client.post('/api/brains/chatgpt/connect-device?restart=true')
+    assert renewed.status_code == 200
+    assert [method for method, _ in fake.calls].count('account/login/start') == 3
+    assert ('account/login/cancel', {'loginId':'chatgptDeviceCode-id'}) in fake.calls
 
 
 def test_account_read_restarts_stale_codex_process(monkeypatch):
