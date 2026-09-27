@@ -1,5 +1,11 @@
 # Vidéo de candidature Passage — 2 minutes maximum
 
+## Version actuelle : animation en collage, 110,9 secondes
+
+La [vidéo finale en collage](demo/Passage_demo_collage.mp4) suit le scientifique narrateur et ses échanges avec Marguerite. Des éléments de papier découpé montrent la circulation du travail : besoin → plan soumis à approbation → lecteur de sources → agent protocole → agent code → retour au coordinateur → preuves → décision humaine. Les outils et leurs droits apparaissent dans le dossier partagé. Les voix Gradium sont distinctes : `l2nzlZ4fcaobSwPk` pour le scientifique et `FXxJ9mANRq6BCTX5` pour Marguerite. Les sept transitions image/voix ont été contrôlées de part et d’autre de chaque frontière ; leur décalage maximal calculé est inférieur à 0,04 seconde.
+
+Le script exact est dans [demo/dialogue-v2.json](demo/dialogue-v2.json), les temps dans [demo/dialogue_timing-v2.json](demo/dialogue_timing-v2.json), et le montage reproductible dans [demo/build_video_collage.py](demo/build_video_collage.py). Il s’agit d’une animation pédagogique, pas d’une capture d’exécution d’un fournisseur tiers. La version précédente reste archivée dans [demo/Passage_demo.mp4](demo/Passage_demo.mp4).
+
 ## Montage livré : dialogue illustré, 98,57 secondes
 
 La [vidéo MP4](demo/Passage_demo.mp4) met en scène un scientifique en blouse, cheveux en bataille et barbe de quelques jours, face à Marguerite. Leurs répliques alternent sur huit scènes. La voix du scientifique utilise l’identifiant Gradium `l2nzlZ4fcaobSwPk` choisi par l’auteur ; Marguerite reprend la voix Gradium `FXxJ9mANRq6BCTX5` de Passage. Les personnages originaux sont animés par un léger mouvement vertical. Le montage a été décodé et sa durée mesurée à 1 min 38,57 s. Le dialogue exact est dans [demo/dialogue.json](demo/dialogue.json) ; les durées de chaque réplique sont dans [demo/dialogue_timing.json](demo/dialogue_timing.json).

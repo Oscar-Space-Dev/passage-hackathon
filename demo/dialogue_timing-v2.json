@@ -1,0 +1,50 @@
+[
+  {
+    "scene": 0,
+    "speaker": "scientifique",
+    "start": 0.0,
+    "duration": 10.46
+  },
+  {
+    "scene": 1,
+    "speaker": "marguerite",
+    "start": 10.46,
+    "duration": 13.180000000000001
+  },
+  {
+    "scene": 2,
+    "speaker": "scientifique",
+    "start": 23.64,
+    "duration": 6.779999999999999
+  },
+  {
+    "scene": 3,
+    "speaker": "marguerite",
+    "start": 30.42,
+    "duration": 23.259999999999998
+  },
+  {
+    "scene": 4,
+    "speaker": "scientifique",
+    "start": 53.68,
+    "duration": 6.3
+  },
+  {
+    "scene": 5,
+    "speaker": "marguerite",
+    "start": 59.98,
+    "duration": 21.5
+  },
+  {
+    "scene": 6,
+    "speaker": "scientifique",
+    "start": 81.48,
+    "duration": 5.819999999999999
+  },
+  {
+    "scene": 7,
+    "speaker": "marguerite",
+    "start": 87.3,
+    "duration": 23.6
+  }
+]

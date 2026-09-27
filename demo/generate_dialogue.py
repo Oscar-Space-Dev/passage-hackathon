@@ -15,8 +15,9 @@ VOICES = {'scientifique': 'l2nzlZ4fcaobSwPk', 'marguerite': 'FXxJ9mANRq6BCTX5'}
 
 
 def main():
-    lines = json.loads((ROOT / 'dialogue.json').read_text(encoding='utf-8'))
-    clips = ROOT / 'dialogue_clips'
+    suffix = os.environ.get('PASSAGE_DIALOGUE_SUFFIX', '')
+    lines = json.loads((ROOT / f'dialogue{suffix}.json').read_text(encoding='utf-8'))
+    clips = ROOT / f'dialogue_clips{suffix}'
     clips.mkdir(exist_ok=True)
     frames = []
     fmt = None
@@ -53,12 +54,12 @@ def main():
             frames.append(b'\0' * int(fmt[2] * pause) * fmt[0] * fmt[1])
             timing[-1]['duration'] += pause
             elapsed += pause
-    with wave.open(str(ROOT / 'voix-off.wav'), 'wb') as out:
+    with wave.open(str(ROOT / f'voix-off{suffix}.wav'), 'wb') as out:
         out.setnchannels(fmt[0])
         out.setsampwidth(fmt[1])
         out.setframerate(fmt[2])
         out.writeframes(b''.join(frames))
-    (ROOT / 'dialogue_timing.json').write_text(json.dumps(timing, ensure_ascii=False, indent=2), encoding='utf-8')
+    (ROOT / f'dialogue_timing{suffix}.json').write_text(json.dumps(timing, ensure_ascii=False, indent=2), encoding='utf-8')
     print(f'Dialogue Gradium: {elapsed:.1f} s')
 
 

@@ -24,7 +24,7 @@ Le déploiement Render exige une base Turso externe pour conserver comptes et pr
 
 **Recette publique du 27 septembre 2026 :** inscriptions, création d’un projet et d’un fichier, sauvegarde d’un schéma, invitation liée à son destinataire et refus d’accès entre comptes vérifiés sur Render. Les données ont survécu à un redéploiement. Un compte laboratoire créé publiquement ne peut pas modifier le catalogue commun. Gradium a renvoyé un vrai fichier audio à un compte sans clé personnelle. La génération et le renouvellement d’un code de connexion ChatGPT répondent ; une réponse réelle de Marguerite sur un compte évaluateur reste à vérifier.
 
-**Présentation :** [vidéo illustrée avec dialogue Gradium, 99 secondes](demo/Passage_demo.mp4) · [dossier Word](demo/Passage_dossier_hackathon.docx) · [scénario et voix](DEMO.md). La vidéo illustre les parcours ; elle ne constitue pas une capture d’exécutions de fournisseurs externes.
+**Présentation :** [vidéo d’animation en collage, 111 secondes](demo/Passage_demo_collage.mp4) · [dossier Word](demo/Passage_dossier_hackathon.docx) · [scénario et voix](DEMO.md). Le scientifique sert de fil narrateur ; Marguerite montre comment les agents coopèrent dans un projet. La vidéo illustre les parcours ; elle ne constitue pas une capture d’exécutions de fournisseurs externes.
 
 ## Guide de prise en main et de configuration
 
@@ -229,7 +229,7 @@ Le projet doit être évalué sur ce qu’il exécute réellement. Les cas ci-de
 | Non développé pour cette remise | Connexion ou création de compte Passage par ChatGPT, récupération de mot de passe, envoi automatique d’invitations par email | Utilisez l’inscription email/mot de passe et transmettez manuellement les liens d’invitation. La connexion Google n’apparaît que si un client OAuth est configuré ; elle est absente de l’aperçu. |
 | Hors du périmètre de Passage | Exécution d’une expérience physique, validation d’une simulation scientifique, publication d’une méthode Pipelex, exécution de code arbitraire sans environnement contrôlé | Passage aide à cadrer, écrire, vérifier et conserver les preuves ; le chercheur ou un service externe compétent réalise et valide ces opérations. |
 
-La démonstration vidéo est **illustrée** : ses personnages, schémas et dialogues montrent l’usage visé. Elle ne doit pas être interprétée comme une preuve d’exécution en direct de Marguerite, Dust, Pipelex ou Jinkō. Les vérifications techniques et les correctifs de l’audit sont décrits dans [docs/AUDIT_REMEDIATION.md](docs/AUDIT_REMEDIATION.md).
+La démonstration vidéo est **animée et illustrée** : ses personnages, schémas et dialogues montrent l’usage visé. Elle ne doit pas être interprétée comme une preuve d’exécution en direct de Marguerite, Dust, Pipelex ou Jinkō. Les vérifications techniques et les correctifs de l’audit sont décrits dans [docs/AUDIT_REMEDIATION.md](docs/AUDIT_REMEDIATION.md).
 
 ## Ce qui fonctionne
 
