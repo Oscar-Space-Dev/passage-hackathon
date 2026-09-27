@@ -547,6 +547,23 @@ async function workspaceClick(action,b){
   if(action==='accounts'){const rows=await api('/auth/users');modal('Comptes de cette installation',rows.map(u=>`<form class="account-form" data-id="${u.id}"><p>${esc(u.name)} · ${esc(u.email)}</p><select name="role" aria-label="Rôle de ${esc(u.name)}">${['admin','lab','researcher','company'].map(r=>`<option ${u.role===r?'selected':''}>${r}</option>`).join('')}</select><button class="btn small" type="submit" ${u.id===S.user.id?'disabled':''}>Appliquer</button></form>`).join(''),'','medium');return true;}
   return false;
 }
+function chatgptConnectionHelp(){
+  return `<details class="chatgpt-help" open><summary>Aide : connecter mon compte ChatGPT</summary>
+    <ol>
+      <li><strong>Ouvrir les paramètres ChatGPT.</strong> <a href="https://chatgpt.com/settings/security" target="_blank" rel="noopener noreferrer">Ouvrir « Sécurité et connexion »</a>. Utilisez le même compte ChatGPT que sur l’écran d’autorisation.</li>
+      <li><strong>Activer le code d’appareil.</strong> Descendez tout en bas, dans <strong>« Sécurité des applications »</strong>, et activez <strong>« Activer la connexion par code d’appareil pour Codex, Excel, PowerPoint et Word »</strong>.</li>
+      <li><strong>Revenir dans Passage.</strong> Cliquez sur « Connecter mon compte ChatGPT ». Si un code avait déjà été proposé avant l’activation, cliquez sur <strong>« Générer un nouveau code »</strong>.</li>
+      <li><strong>Valider chez OpenAI.</strong> Ouvrez la page de connexion avec le bouton ci-dessous, saisissez le nouveau code et terminez la validation. Puis revenez ici et cliquez sur <strong>« Vérifier la connexion »</strong> : le statut doit afficher « Connecté ».</li>
+    </ol>
+    <p class="hint">La commande « codex login --device-auth » mentionnée par OpenAI est prise en charge par Passage. Vous n’avez rien à installer ni à lancer dans un terminal.</p>
+    <details><summary>Je ne trouve pas l’option, ou mon code est refusé</summary>
+      <p>Ouvrez ChatGPT dans le navigateur avec le lien ci-dessus. Vérifiez le compte sélectionné et faites défiler toute la page des paramètres de sécurité. Le libellé peut aussi apparaître en anglais : « Enable device code authentication ».</p>
+      <p>Dans un espace professionnel ou universitaire géré, cette autorisation peut dépendre de l’administrateur de l’espace. Si l’option reste absente, demandez-lui d’autoriser la connexion par code pour Codex.</p>
+      <p>Si le code est expiré ou si vous venez d’activer l’option, générez un nouveau code dans Passage et utilisez uniquement celui-ci. La connexion n’est terminée que lorsque Passage indique « Connecté ».</p>
+    </details>
+    <p class="hint"><a href="https://developers.openai.com/codex/auth/#preferred-device-code-authentication-beta" target="_blank" rel="noopener noreferrer">Documentation officielle OpenAI</a></p>
+  </details>`;
+}
 function chatgptLoginHtml(login){
   if(!login)return '';
   const value=login.verificationUrl||login.authUrl||'';
@@ -734,7 +751,7 @@ async function loadBrainAccounts(){
   try{const c=await api('/brains/chatgpt/status');
     const windows=c.limits?.rateLimitsByLimitId||{codex:c.limits?.rateLimits};
     const limits=Object.entries(windows).filter(([,v])=>v).map(([name,v])=>[v.primary,v.secondary].filter(Boolean).map(w=>`<p class="tiny">${esc(name)} · ${Math.max(0,100-w.usedPercent)} % disponibles sur ${w.windowDurationMins} minutes${w.resetsAt?' · renouvellement '+fmt(w.resetsAt*1000):''}</p>`).join('')).join('');
-    el.innerHTML=`<section class="card"><h3>Mon compte ChatGPT</h3>${badge(c.connected?'Connecté':'Non connecté',c.connected?'dark':'gray')}<p>Utilise l’accès Codex de votre compte ChatGPT. Les modèles et limites dépendent de votre offre. La clé API OpenAI utilise une facturation distincte.</p>${c.account?`<p>${esc(c.account.email||'')} · ${esc(c.account.planType||'')}</p>`:''}${limits}<div class="actions">${c.installed&&!c.connected?(c.browser_login_available!==false?button('Connecter par navigateur','chatgpt-connect','link','secondary small'):'')+button(c.browser_login_available===false?'Connecter mon compte ChatGPT':'Utiliser un code','chatgpt-connect-device','link','secondary small'):''}${!c.installed?'<p>La connexion ChatGPT est indisponible sur ce serveur. Contactez son administrateur.</p>':''}${button('Vérifier la connexion','chatgpt-refresh',null,'ghost small')}${c.connected?button('Déconnecter','chatgpt-disconnect',null,'ghost small'):''}</div><div id="chatgpt-login">${chatgptLoginHtml(c.pending_login)}</div><p class="hint">Connexion personnelle, propre à votre compte Passage.${c.persistent_connection?' Elle est conservée chiffrée pour retrouver votre accès après un redémarrage du serveur. Déconnecter supprime cette sauvegarde.':''}${c.browser_login_available===false?' Validez le code sur la page officielle OpenAI ; si nécessaire, activez la connexion par code dans les paramètres de sécurité de ChatGPT.':''}</p></section>`;
+    el.innerHTML=`<section class="card"><h3>Mon compte ChatGPT</h3>${badge(c.connected?'Connecté':'Non connecté',c.connected?'dark':'gray')}<p>Utilise l’accès Codex de votre compte ChatGPT. Les modèles et limites dépendent de votre offre. La clé API OpenAI utilise une facturation distincte.</p>${c.account?`<p>${esc(c.account.email||'')} · ${esc(c.account.planType||'')}</p>`:''}${limits}${!c.connected?chatgptConnectionHelp():''}<div class="actions">${c.installed&&!c.connected?(c.browser_login_available!==false?button('Connecter par navigateur','chatgpt-connect','link','secondary small'):'')+button(c.browser_login_available===false?'Connecter mon compte ChatGPT':'Utiliser un code','chatgpt-connect-device','link','secondary small'):''}${!c.installed?'<p>La connexion ChatGPT est indisponible sur ce serveur. Contactez son administrateur.</p>':''}${button('Vérifier la connexion','chatgpt-refresh',null,'ghost small')}${c.connected?button('Déconnecter','chatgpt-disconnect',null,'ghost small'):''}</div><div id="chatgpt-login">${chatgptLoginHtml(c.pending_login)}</div><p class="hint">Connexion personnelle, propre à votre compte Passage.${c.persistent_connection?' Elle est conservée chiffrée pour retrouver votre accès après un redémarrage du serveur. Déconnecter supprime cette sauvegarde.':''}${c.browser_login_available===false?' Validez le code sur la page officielle OpenAI ; si nécessaire, activez la connexion par code dans les paramètres de sécurité de ChatGPT.':''}</p></section>`;
   }catch(e){el.innerHTML=errorBox(e.message);}
 }
 async function loadVoiceAccount(){
