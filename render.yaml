@@ -7,6 +7,14 @@ services:
     envVars:
       - key: PASSAGE_DB
         value: /tmp/passage.db
+      - key: PASSAGE_REQUIRE_REMOTE_DB
+        value: "1"
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+      - key: PASSAGE_ENCRYPTION_KEY
+        sync: false
       - key: PYTHONUNBUFFERED
         value: "1"
       - key: PASSAGE_PUBLIC_SIGNUP

@@ -3,8 +3,11 @@
 .git/
 .pytest_cache/
 _pytest_*/
+.test-*/
 .test-temp-*/
 tmpguide*/
+pytest-*/
+diagram-ui/
 diagram-ui/node_modules/
 .pipelex/
 examples/

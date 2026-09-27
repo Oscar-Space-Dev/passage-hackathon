@@ -517,7 +517,7 @@ def owned(row):
 
 def team(ids):
     found = [store.get('agent', identifier) for identifier in dict.fromkeys(ids)]
-    if not found or any(a is None for a in found):
+    if not found or any(not agents.visible(a, auth.current()) for a in found):
         raise HTTPException(422, 'Affectez au moins un agent existant au projet.')
     return found
 
@@ -552,7 +552,7 @@ def listing():
 
 @router.post('')
 def create(body: ProjectInput):
-    ids = body.agent_ids or [a['id'] for a in store.all_of('agent') if a['active']]
+    ids = body.agent_ids or [a['id'] for a in store.all_of('agent') if a['active'] and agents.visible(a, auth.current())]
     roster = team(ids)
     coordinator = body.coordinator_id or next((a['id'] for a in roster if a['engine']=='direct'), '')
     if coordinator not in ids or store.get('agent', coordinator)['engine']!='direct':
@@ -948,7 +948,8 @@ def coordinate(pid, mode, trace):
             'latest_user_message': next((m['text'] for m in reversed(conversation) if m['role']=='user'), ''),
             'team': [{**{k:a[k] for k in ['id','name','role','mandate']},
                       'work_specialties': a.get('work_specialties', [])} for a in roster],
-            'available_agents': [{k:a[k] for k in ['id','name','role']} for a in store.all_of('agent')],
+            'available_agents': [{k:a[k] for k in ['id','name','role']} for a in store.all_of('agent')
+                                 if agents.visible(a, user)],
             'work_catalog': [{'id': row['id'], 'title': row['title'], 'persona': row['persona'],
                               'requires_agent_clearance': any(gate['before'] == 'agent'
                                                               for gate in row['checkpoints'])}

@@ -81,6 +81,81 @@ def wait_plan(client, terminal):
     raise AssertionError('Le plan n’a pas atteint son état attendu.')
 
 
+def test_marguerite_creates_v4_agent_only_after_approval_and_keeps_it_private(client, monkeypatch):
+    project = client.post('/api/projects', json={
+        'name': 'Thèse personnelle', 'objective': 'Produire une revue critique de mes articles.'}).json()
+    spec = {
+        'name': 'Revue critique', 'role': 'research_task',
+        'mandate': 'Lire les articles fournis et rédiger une synthèse critique sourcée.',
+        'skill': ('1. Cadrer le corpus et la question.\n2. Vérifier les sources.\n'
+                  '3. Proposer un plan à valider.\n4. Rédiger avec citations.\n'
+                  '5. Vérifier les affirmations et limites.\n6. Livrer le brouillon pour relecture.'),
+        'context': 'Revue de littérature de la thèse, limitée aux articles du projet.',
+        'trigger': 'Demande de revue critique sur une tâche R1 du projet.',
+        'reads': 'Articles attachés à la tâche et notes que le doctorant autorise.',
+        'boundaries': 'Le doctorant choisit le corpus et valide les interprétations.',
+        'checkpoint': 'Faire valider le plan puis la synthèse avant tout usage dans la thèse.',
+        'deliverables': 'Brouillon sourcé avec incertitudes et pistes de vérification.',
+        'tools': ['work.read'], 'work_specialties': ['r1-literature'],
+        'provider': 'codex', 'model': 'auto', 'engine': 'direct',
+    }
+
+    class Brain:
+        def complete(self, *_):
+            return {'reply': 'Je propose de créer ce spécialiste puis de le tester.',
+                    'profile': '', 'questions': [], 'human_steps': [],
+                    'actions': [action('create_agent', label='Créer Revue critique',
+                        project_id=project['id'], arguments_json=json.dumps(spec, ensure_ascii=False))]
+                    }, {'actual_model': 'gpt-6-luna'}
+
+    monkeypatch.setattr(codex_brain, 'configured', lambda: True)
+    monkeypatch.setattr(codex_brain, 'models', lambda: {'models': []})
+    monkeypatch.setattr(codex_brain, 'client', lambda _: Brain())
+    proposed = client.post('/api/guide/messages', json={
+        'text': 'Crée un agent pour ma revue de littérature.', 'project_id': project['id']})
+    assert proposed.status_code == 200, proposed.text
+    plan = proposed.json()['plan']
+    assert plan['status'] == 'pending'
+    assert not [a for a in store.all_of('agent') if a.get('owner_id')]
+    assert client.post('/api/guide/plans/' + plan['id'] + '/approve').status_code == 200
+    finished = wait_plan(client, {'completed', 'failed'})
+    assert finished['status'] == 'completed', finished
+    agent_id = finished['results'][0]['result']['agent_id']
+    agent = store.get('agent', agent_id)
+    assert agent['creator_version'].startswith('super-skill-creator-v4')
+    assert agent['active'] and agent['provider'] == 'codex' and agent['owner_id']
+    assert agent_id in client.get('/api/projects/' + project['id']).json()['agent_ids']
+    assert client.get('/api/agents/' + agent_id + '/export/pipelex').status_code == 200
+
+    from fastapi.testclient import TestClient
+    from passage.main import app
+    with TestClient(app) as outsider:
+        outsider.post('/api/auth/register', json={
+            'email': 'other@example.test', 'name': 'Autre personne',
+            'password': 'test-password-456', 'account_type': 'researcher'})
+        assert outsider.get('/api/agents/' + agent_id).status_code == 404
+        assert outsider.get('/api/agents/' + agent_id + '/export/pipelex').status_code == 404
+        assert agent_id not in [a['id'] for a in outsider.get('/api/state').json()['agents']]
+
+
+def test_marguerite_refuses_incomplete_agent_without_saving(client, monkeypatch):
+    class Brain:
+        def complete(self, *_):
+            return {'reply': 'Je vais créer un agent.', 'profile': '', 'questions': [],
+                    'human_steps': [], 'actions': [action('create_agent', arguments_json=json.dumps({
+                        'name': 'Agent vague', 'role': 'research_task',
+                        'mandate': 'Faire toutes les tâches de recherche à ma place.',
+                        'skill': 'Un skill sans contrôle ni étapes.'}))]}, {}
+
+    monkeypatch.setattr(codex_brain, 'configured', lambda: True)
+    monkeypatch.setattr(codex_brain, 'models', lambda: {'models': []})
+    monkeypatch.setattr(codex_brain, 'client', lambda _: Brain())
+    result = client.post('/api/guide/messages', json={'text': 'Crée un agent vague.'})
+    assert result.status_code == 200
+    assert result.json()['plan'] is None
+    assert not [a for a in store.all_of('agent') if a.get('owner_id')]
+
+
 def test_marguerite_uses_selected_project_and_records_note_with_agent_provenance(client, monkeypatch):
     project = client.post('/api/projects', json={
         'name': 'Projet sélectionné', 'objective': 'Préparer un protocole expérimental documenté.'}).json()

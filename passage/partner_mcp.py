@@ -1,6 +1,7 @@
 """Official remote MCP servers: per-user OAuth, discovery and explicit tool grants."""
 import asyncio
 import json
+import os
 import re
 import secrets
 import threading
@@ -215,6 +216,11 @@ def parse_json_object(text):
     return value if isinstance(value, dict) else None
 
 def cipher():
+    env_key = os.environ.get('PASSAGE_ENCRYPTION_KEY')
+    if env_key:
+        return Fernet(env_key.encode())
+    if store.remote_enabled():
+        raise RuntimeError('PASSAGE_ENCRYPTION_KEY est requis avec une base distante.')
     path = store.db_path().parent / 'runtime' / 'oauth.key'
     with LOCK:
         path.parent.mkdir(exist_ok=True, parents=True)

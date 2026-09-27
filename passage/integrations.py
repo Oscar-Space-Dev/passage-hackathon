@@ -23,7 +23,7 @@ def env(name, default=''):
     load_dotenv(store.ROOT / '.env', override=False)
     if name in SESSION_SECRETS:
         return SESSION_SECRETS[name]
-    if store.db_path().exists():
+    if store.remote_enabled() or store.db_path().exists():
         row = store.get('installation_setting', name)
         if row:
             from .partner_mcp import cipher

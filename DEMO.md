@@ -1,30 +1,26 @@
-# Démonstration Passage — parcours de 2 minutes
+# Vidéo de candidature Passage — 2 minutes maximum
 
-## Préparation
+**Angle :** suivre un doctorant qui passe d’une question de recherche à un travail vérifiable avec une équipe d’agents. Montrer une action réellement disponible, sa validation et sa trace. La voix off est générée avec Gradium ; les captures montrent Passage, sans clé ni donnée privée.
 
-Lancer le serveur et ouvrir http://127.0.0.1:8088. Choisir Appels réels si les accès ont été vérifiés. Sinon annoncer explicitement une démonstration du fonctionnement avec résultats simulés ; ne pas présenter les règles de simulation comme des agents LLM.
+| Temps cible | Écran | Idée à transmettre |
+| --- | --- | --- |
+| 0–12 s | Titre Passage, inscription Doctorant | À qui sert Passage et pour quel problème |
+| 12–32 s | Projet et catalogue des travaux R1–R3 | Un projet se décompose en tâches scientifiques concrètes |
+| 32–55 s | Marguerite : demande préparée, plan visible, bouton de validation | L’agent dialogue, propose, puis attend l’accord humain |
+| 55–78 s | Dossier d’une tâche : questions, pièces, étapes et brouillon d’agent | Les travaux et leurs preuves restent consultables |
+| 78–96 s | Schéma Excalidraw, formalisation en brouillon de protocole | Du dessin à une méthode révisable |
+| 96–108 s | Atelier : cerveau ChatGPT, harnais Super Skill Creator V4 | Un agent est configurable et contrôlé avant usage |
+| 108–118 s | Connexions : Gradium, Dust et Pipelex MCP ; retour au projet | Les partenaires enrichissent le travail dans un même espace |
 
-Le premier démarrage charge les vraies notices. Le cas thermique est 2014DIJOS078 ; les cas de comparaison sont 2019PSLEC037 et s352032. Le programme Pack 2027 est fictif. Préparer les dossiers avant un enregistrement vidéo pour ne pas passer la durée de présentation à attendre les services.
+**Durée visée :** 118 secondes, générique compris. Prévoir des captures montées et de légers zooms ; ne pas attendre un appel LLM pendant l’enregistrement. Si un résultat est déjà préparé, afficher sa date et son état réel. Ne pas montrer Jinkō comme intégré avant un essai SDK réussi. Ne pas affirmer que Dust ou Pipelex exécute un agent à partir de Passage si seule la connexion MCP est démontrée.
 
-L'instance livrée dispose des quatre agents Gemma locaux activés et de leurs dossiers réels. Dernier rapprochement vérifié : onze notices, scores respectifs 90 / 15 / 5 pour les trois cas ci-dessus. Les appels ont pris environ 82 à 131 secondes ; une relance peut produire d'autres formulations ou scores. Pour revoir le classement enregistré, ouvrir Exécutions et le résultat du Rapprochement réussi, sans relancer le modèle.
+## Voix off
 
-## Script
+Le texte exact est conservé dans [demo/voix-off.txt](demo/voix-off.txt). Générer la voix avec la clé Gradium de l’installation et mesurer la durée du WAV. Ajuster le montage à l’audio, puis exporter un MP4 de moins de deux minutes. Vérifier la lecture sonore avant l’envoi.
 
-| Temps | À montrer | Message |
-|---|---|---|
-| 0–15 s | Vue d'ensemble, puis laboratoire LRCS | « Les thèses contiennent des pistes que les entreprises ne trouvent pas. Passage relie leurs deux vocabulaires. » |
-| 15–35 s | Import theses.fr, fiche de Félix Bourseau | « Les notices viennent d'une source publique. L'agent distingue les objectifs d'une thèse en cours des résultats acquis. Le directeur choisit ce qui est visible. » |
-| 35–65 s | Bibliothèque, cas des vélos électriques, recherche | « L'ingénieur décrit l'échauffement de ses cellules. Chaque piste est expliquée ; les matériaux d'électrode et l'impression 3D ne répondent pas au même besoin que la gestion thermique. » |
-| 65–90 s | Thèse de Che Daud, dossier Incorporation | « Le dossier montre ce qui est documenté, les essais à faire, les contacts et les incertitudes. Une étude en décharge automobile ne prouve pas les performances en charge rapide sur un vélo. » |
-| 90–105 s | Proposer à Pack 2027, accepter, ouvrir la note | « La note rejoint le programme seulement après une décision humaine. Sans Oscar, ce parcours fonctionne en démonstration locale. » |
-| 105–120 s | Espace doctorant et atelier | « Le chercheur voit l'intérêt suscité et garde son nom sur son travail. Les agents sont configurables et leurs harnais versionnés ; Dust et Pipelex sont des moteurs possibles. » |
+## Contrôles avant dépôt
 
-## Vérifications avant enregistrement
-
-- Lire les résultats réels avant de les présenter ; ne pas promettre l'ordre exact des modèles sans l'avoir observé.
-- Préparer un dossier Opportunité et montrer que « à approfondir » ou « défavorable » est une réponse possible.
-- Vérifier le badge simulation/réel et la source du programme (démo/Oscar).
-- Ne pas afficher de clé API ni le contenu de `.env` dans la vidéo.
-- Conserver la déclaration du code préexistant Oscar-AI dans le README de candidature.
-
-Cette fiche prépare la démonstration. Elle n'est pas une vidéo produite ni une candidature déposée.
+1. Refaire le parcours dans l’aperçu public avec un compte évaluateur neuf.
+2. Masquer clés, adresses privées et données confidentielles ; utiliser un projet de démonstration.
+3. Vérifier les badges « réel »/« simulation » et l’état des exécutions avant d’enregistrer.
+4. Ajouter l’URL publique de la vidéo et du dépôt dans le formulaire ; relire chaque réponse avant soumission.

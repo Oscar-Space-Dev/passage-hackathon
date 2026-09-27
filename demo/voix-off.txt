@@ -1,0 +1,13 @@
+Une thèse, ce n’est pas seulement un texte à écrire. Il faut lire, expérimenter, comparer, coder et justifier chaque décision. Passage aide le doctorant à conduire ce travail avec une équipe d’agents, sans lui retirer la responsabilité scientifique.
+
+Je crée mon projet et choisis une tâche précise parmi trente-deux travaux de recherche. Chaque tâche indique les questions à résoudre, les pièces attendues et les étapes que je dois vérifier moi-même.
+
+Marguerite est disponible à tout moment. Je lui explique mon objectif. Elle retrouve mon projet, propose une suite d’actions réalisables, puis attend mon accord. Après validation, elle crée ou organise les travaux dans Passage. Je peux suivre ce qui a réellement été fait.
+
+Dans le dossier, l’agent prépare un brouillon à partir des seules sources autorisées. Je retrouve les versions, les preuves et les limites. Je peux demander une correction, mais c’est moi qui dépose et valide le livrable.
+
+Je peux aussi dessiner un protocole. Passage en extrait les étapes et aide à produire un document ou un brouillon de méthode Pipelex, toujours à relire.
+
+Chaque agent possède un cerveau ChatGPT et un harnais versionné : mission, skill, contexte, mémoire et outils. Marguerite suit la doctrine Super Skill Creator pour proposer de nouveaux spécialistes ; le contrôle refuse les définitions incomplètes.
+
+Gradium rend le dialogue vocal. Dust et Pipelex se relient par leurs outils MCP. Passage rassemble ces capacités autour du projet, tout en rendant les décisions et les résultats vérifiables.

@@ -42,7 +42,8 @@ class CodexClient:
         # This user gets an independent login. Never import the desktop host's credentials.
         (self.home / 'config.toml').write_text('cli_auth_credentials_store = "file"\n', encoding='utf-8')
         environment = {k:v for k,v in os.environ.items() if k.upper() in {
-            'PATH','SYSTEMROOT','WINDIR','TEMP','TMP','USERPROFILE','APPDATA','LOCALAPPDATA','PROGRAMDATA','PATHEXT'}}
+            'PATH','SYSTEMROOT','WINDIR','TEMP','TMP','USERPROFILE','APPDATA','LOCALAPPDATA','PROGRAMDATA','PATHEXT',
+            'HOME','HTTP_PROXY','HTTPS_PROXY','ALL_PROXY','NO_PROXY','SSL_CERT_FILE','REQUESTS_CA_BUNDLE'}}
         environment['CODEX_HOME'] = str(self.home.resolve())
         flags = ['-c', 'web_search="disabled"']
         for feature in ('shell_tool','unified_exec','apps','plugins','code_mode_host','in_app_browser'):

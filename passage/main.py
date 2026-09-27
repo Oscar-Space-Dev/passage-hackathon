@@ -184,7 +184,7 @@ def state(role: Role = 'lab'):
     allowed_ids = {t['id'] for t in ts}
     proposals = [p for p in store.all_of('proposal') if p['thesis_id'] in allowed_ids and projects.owned(p)]
     return {'settings': item('settings', 'main'), 'theses': summaries, 'programmes': store.all_of('programme'),
-            'proposals': proposals, 'agents': [{**{k:v for k,v in a.items() if auth.current()['role']=='admin' or k not in ('context','memory','skill','connector_ids','dust_id')}, 'control': agents.control(a), 'live_control': agents.control(a, True)} for a in store.all_of('agent')],
+            'proposals': proposals, 'agents': [{**{k:v for k,v in a.items() if auth.current()['role']=='admin' or k not in ('context','memory','skill','connector_ids','dust_id')}, 'control': agents.control(a), 'live_control': agents.control(a, True)} for a in store.all_of('agent') if agents.visible(a, auth.current())],
             'stats': {'lab': sum(t['is_lab'] for t in ts), 'visible': sum(t['visible'] for t in ts),
                       'visits': sum(v['thesis_id'] in allowed_ids for v in visits), 'reports': len(reports),
                       'pending': sum(p['status'] == 'pending' for p in proposals)},
@@ -346,8 +346,9 @@ def check_agent(body: AgentInput, role: Role = 'admin'):
 
 @app.get('/api/agents/{identifier}')
 def get_agent(identifier: str, role: Role = 'admin'):
-    require(role, {'admin'})
     a = item('agent', identifier)
+    if role != 'admin' and a.get('owner_id') != auth.current()['id']:
+        raise HTTPException(404, 'Agent introuvable.')
     return {'agent': a, 'assembled': agents.assembled(a), 'control': agents.control(a), 'live_control': agents.control(a, True),
             'revisions': [r for r in store.all_of('revision') if r['agent_id'] == identifier]}
 
@@ -387,8 +388,9 @@ def update_agent(identifier: str, body: AgentInput, role: Role = 'admin'):
 
 @app.get('/api/agents/{identifier}/export/{target}')
 def export_agent(identifier: str, target: str, role: Role = 'admin'):
-    require(role, {'admin'})
     a = item('agent', identifier)
+    if role != 'admin' and a.get('owner_id') != auth.current()['id']:
+        raise HTTPException(404, 'Agent introuvable.')
     if target == 'pipelex':
         return Response(agents.method(a), media_type='text/plain', headers={'Content-Disposition': f'attachment; filename="{a["role"]}.mthds"'})
     if target == 'dust':

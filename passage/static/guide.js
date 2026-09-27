@@ -26,7 +26,24 @@ function guideActionDetail(a){
   if(a.thesis_id)items.push('Thèse : '+a.thesis_id);
   if(a.service)items.push('Service : '+a.service);
   if(a.tool)items.push('Outil : '+a.tool);
-  if(a.arguments_json)items.push('Paramètres : '+a.arguments_json);
+  if(a.arguments_json){
+    if(a.kind==='create_agent'){
+      try{const spec=JSON.parse(a.arguments_json);
+        items.push('Mandat : '+spec.mandate);
+        items.push('Cerveau : ChatGPT via Codex · '+(spec.model||'auto'));
+        items.push('Tâches : '+(spec.work_specialties||[]).join(', '));
+        items.push('Déclencheur : '+spec.trigger);
+        items.push('Données lues : '+spec.reads);
+        items.push('Validation humaine : '+spec.checkpoint);
+        items.push('Livrable : '+spec.deliverables);
+        items.push('Skill : '+spec.skill);
+        items.push('Contexte : '+spec.context);
+        if(spec.memory)items.push('Mémoire : '+spec.memory);
+        if(spec.process)items.push('Processus : '+spec.process);
+        if(spec.workflow)items.push('Workflow : '+spec.workflow);
+      }catch{items.push('Définition : '+a.arguments_json);}
+    }else items.push('Paramètres : '+a.arguments_json);
+  }
   if(a.diagram_id)items.push('Schéma : '+a.diagram_id);
   if(a.diagram_title)items.push('Titre du schéma : '+a.diagram_title);
   if(a.target)items.push('Document : '+a.target);
@@ -45,6 +62,7 @@ function guideRender(){
   const results=p?.results||[];
   const resultLinks=results.map(r=>{
     const x=r.result||{};
+    if(x.agent_id)return `<button class="btn ghost small" type="button" data-guide="open-agent" data-agent="${esc(x.agent_id)}">Voir le harnais créé</button>`;
     if(x.diagram_id&&x.task_id)return `<button class="btn ghost small" type="button" data-guide="open-diagram" data-project="${esc(x.project_id)}" data-task="${esc(x.task_id)}" data-diagram="${esc(x.diagram_id)}">Ouvrir le dessin</button>`;
     if(x.task_id)return `<button class="btn ghost small" type="button" data-guide="open-task" data-project="${esc(x.project_id)}" data-task="${esc(x.task_id)}">Ouvrir la tâche</button>`;
     if(x.project_id)return `<button class="btn ghost small" type="button" data-guide="open-project" data-project="${esc(x.project_id)}">Ouvrir le projet</button>`;
@@ -76,6 +94,11 @@ document.addEventListener('click',async e=>{
   }
   if(command==='open-project'){
     try{S.projects=await api('/projects');S.project=await api('/projects/'+b.dataset.project);rememberProject();S.view='chat';shell();G.open=false;guideRender();}catch(err){G.error=err.message;guideRender();}return;
+  }
+  if(command==='open-agent'){
+    try{const detail=await api('/agents/'+b.dataset.agent);const a=detail.agent;
+      modal('Harnais · '+a.name,`<p><strong>${esc(a.mandate)}</strong></p><p>Créé par Marguerite · ${esc(a.creator_version||'')}</p><details open><summary>Skill</summary><pre>${esc(a.skill)}</pre></details><details><summary>Contexte et contrôles</summary><pre>${esc([a.context,a.trigger,a.reads,a.boundaries,a.checkpoint,a.deliverables].filter(Boolean).join('\n\n'))}</pre></details><p>${detail.control.length?esc(detail.control.join(' · ')):'Définition complète. À éprouver sur un travail réel.'}</p><button class="btn ghost small" type="button" data-action="export-agent" data-id="${esc(a.id)}" data-target="pipelex">Exporter le brouillon .mthds</button>`);
+    }catch(err){G.error=err.message;guideRender();}return;
   }
   if(command==='open-task'||command==='open-diagram'){
     try{

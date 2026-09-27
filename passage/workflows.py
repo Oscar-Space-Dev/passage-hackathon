@@ -210,7 +210,29 @@ def files(identifier):
 
 def file_path(file_id):
     # Only server-generated identifiers reach this path; user filenames are metadata.
-    return store.db_path().parent / 'runtime' / 'work_files' / file_id
+    path = store.db_path().parent / 'runtime' / 'work_files' / file_id
+    if store.remote_enabled() and not path.is_file():
+        manifest = store.get('work_blob', file_id)
+        if manifest:
+            raw = b''.join(base64.b64decode(store.get('work_blob_chunk', f'{file_id}:{index:04d}')['data'])
+                           for index in range(manifest['chunks']))
+            if hashlib.sha256(raw).hexdigest() != manifest['sha256']:
+                raise RuntimeError('Pièce jointe distante corrompue.')
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(raw)
+    return path
+
+
+def persist_file(file_id, raw):
+    if not store.remote_enabled():
+        return
+    chunk_size = 256 * 1024
+    with store.transaction() as conn:
+        for index, offset in enumerate(range(0, len(raw), chunk_size)):
+            store.put('work_blob_chunk', {'id': f'{file_id}:{index:04d}',
+                      'data': base64.b64encode(raw[offset:offset+chunk_size]).decode()}, conn)
+        store.put('work_blob', {'id': file_id, 'chunks': (len(raw)+chunk_size-1)//chunk_size,
+                               'sha256': hashlib.sha256(raw).hexdigest()}, conn)
 
 
 def extracted_text(raw, suffix):
@@ -1602,9 +1624,11 @@ def upload_file(identifier: str, body: WorkFileInput):
         path = file_path(file_id)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(raw)
+        persist_file(file_id, raw)
         extracted, extraction_truncated, extraction_method, extraction_error = extracted_text(raw, suffix)
         if extracted.strip():
             file_path(file_id+'.txt').write_text(extracted, encoding='utf-8')
+            persist_file(file_id+'.txt', extracted.encode('utf-8'))
         item = store.put('work_file', {
             'id': file_id, 'work_id': identifier, 'project_id': row['project_id'],
             'name': filename, 'size': len(raw), 'sha256': hashlib.sha256(raw).hexdigest(),
@@ -1632,7 +1656,7 @@ def download_file(identifier: str, file_id: str):
         raise HTTPException(404, 'Fichier introuvable.')
     path = file_path(file_id)
     if not path.is_file():
-        raise HTTPException(404, 'Fichier absent du stockage local.')
+        raise HTTPException(404, 'Fichier absent du stockage.')
     return FileResponse(path, media_type='application/octet-stream', filename=item['name'])
 
 
