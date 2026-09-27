@@ -10,6 +10,19 @@ from passage import store, workflows
 from passage.partner_mcp import cipher
 
 
+def test_real_libsql_cursor_lists_objects_and_events(monkeypatch, tmp_path):
+    libsql = pytest.importorskip('libsql')
+    database = str(tmp_path / 'real-libsql.db')
+    monkeypatch.setattr(store, 'connect', lambda: libsql.connect(database))
+    monkeypatch.setenv('TURSO_DATABASE_URL', 'libsql://contract-test')
+    monkeypatch.setenv('PASSAGE_ENCRYPTION_KEY', Fernet.generate_key().decode())
+    store.init()
+    store.put('project', {'id': 'real', 'name': 'Persistant'})
+    store.event('Projet créé', 'real')
+    assert store.all_of('project') == [{'id': 'real', 'name': 'Persistant'}]
+    assert store.events()[0]['subject'] == 'real'
+
+
 def test_render_requires_remote_database(monkeypatch, tmp_path):
     monkeypatch.setenv('PASSAGE_DB', str(tmp_path / 'ephemeral.db'))
     monkeypatch.setenv('PASSAGE_REQUIRE_REMOTE_DB', '1')

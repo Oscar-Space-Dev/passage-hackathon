@@ -95,7 +95,7 @@ def get(kind, identifier, conn=None):
 
 def all_of(kind):
     with transaction() as c:
-        return [json.loads(r[0]) for r in c.execute('SELECT body FROM objects WHERE kind=? ORDER BY rowid', (kind,))]
+        return [json.loads(r[0]) for r in c.execute('SELECT body FROM objects WHERE kind=? ORDER BY rowid', (kind,)).fetchall()]
 
 def event(action, subject='', detail=''):
     with transaction() as c:
@@ -104,7 +104,7 @@ def event(action, subject='', detail=''):
 def events(limit=80):
     with transaction() as c:
         return [dict(zip(('id', 'at', 'action', 'subject', 'detail'), r))
-                for r in c.execute('SELECT id,at,action,subject,detail FROM events ORDER BY id DESC LIMIT ?', (limit,))]
+                for r in c.execute('SELECT id,at,action,subject,detail FROM events ORDER BY id DESC LIMIT ?', (limit,)).fetchall()]
 
 def remove(kind, identifier):
     with transaction() as c:
