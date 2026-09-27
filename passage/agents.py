@@ -75,6 +75,8 @@ def task_schema(role, notices):
 
 def control(agent, live=False):
     issues = creator.issues(agent)
+    if 'jinko.read' in agent.get('tools', []) and agent['engine'] != 'direct':
+        issues.append('Les lectures Jinkō du harnais exigent le moteur direct.')
     for key in ['name', 'mandate', 'skill', 'model']:
         if not agent.get(key, '').strip():
             issues.append('Champ manquant : ' + key)
@@ -96,6 +98,10 @@ def control(agent, live=False):
         if required not in agent['tools']:
             issues.append('Capacité requise : ' + required)
     if live:
+        if 'jinko.read' in agent.get('tools', []):
+            from . import jinko_bridge
+            if not jinko_bridge.settings():
+                issues.append('Projet Jinkō personnel non connecté.')
         s = integrations.statuses()
         from . import codex_brain
         s['codex'] = codex_brain.configured()

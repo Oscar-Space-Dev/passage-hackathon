@@ -223,7 +223,7 @@ Les dépendances et un lanceur Windows sont livrés. L'API est documentée via `
 | Pipelex | Méthode doctorale exportable et invocation configurée, état et résultats | OAuth MCP, catalogue et signature réels ; une carte de lancement est préparée, run hébergé à confirmer puis vérifier |
 | Oscar | Démo complète ; adaptateur MCP des trois outils | Démo bout en bout ; connexion réelle si serveur/jeton fourni |
 | Gradium | Adaptateurs STT/TTS REST et dialogue implémentés | Synthèse et transcription réelles vérifiées avec audio synthétique ; microphone humain réservé à l'essai de l'utilisateur |
-| Jinko | Ville du laboratoire et préparation d'une visite | Aucun achat/réservation ; intégration avancée reportable selon cadrage |
+| Jinkō | SDK officiel : revue de modèles et essais in silico existants | Connexion personnelle requise ; lectures contrôlées, aucun lancement d’essai |
 
 Les accès partenaires manquants ne doivent pas être présentés comme des intégrations testées en production. Le POC doit néanmoins contenir les chemins de code et contrats des intégrations centrales demandées Dust/Pipelex.
 
@@ -315,7 +315,7 @@ Cette recette s'ajoute à celle des parcours spécialisés. Comptes, permissions
 
 ### 12.1 Comptes et projets
 
-Comptes locaux avec mot de passe de douze caractères minimum, hachage PBKDF2, sessions opaques de 24 heures, cookie HttpOnly/SameSite et vérification CSRF. Administration des rôles dans l'interface. Pas de récupération de mot de passe par email, de SSO d'entreprise ou de multi-organisation. Les projets ont un propriétaire unique ; l'invitation de membres reste hors du périmètre implémenté. Les notices et programmes historiques du scénario restent partagés ; les conversations, missions, analyses et propositions nouvelles sont contrôlées par propriétaire.
+Comptes locaux avec mot de passe de douze caractères minimum, hachage PBKDF2, sessions opaques de 24 heures, cookie HttpOnly/SameSite et vérification CSRF. Administration des rôles dans l'interface. Pas de récupération de mot de passe par email, de SSO d'entreprise ou de multi-organisation. Les projets ont un propriétaire unique. Une équipe dispose d’un responsable et de membres ; les invitations sont des liens privés liés à une adresse email, valables sept jours et utilisables une fois. Le responsable peut les révoquer ou retirer un membre. Rejoindre une équipe expose son annuaire aux membres mais ne donne aucun accès implicite aux projets, conversations ou connexions personnelles. Les notices et programmes historiques du scénario restent partagés ; les conversations, missions, analyses et propositions nouvelles sont contrôlées par propriétaire.
 
 ### 12.2 Coordinateur et harnais
 
@@ -363,7 +363,7 @@ Une demande peut ensuite désigner un agent Dust par son nom dans le catalogue p
 
 ### 13.1 Connexions modèles et voix
 
-Le compte ChatGPT personnel dispose du parcours officiel d’autorisation et d’un adaptateur Codex isolé par utilisateur. Dans l’instance de recette, le CLI est installé et la route de statut est présente ; le compte n’a pas encore été autorisé et aucune inférence ni liste de modèles n’a été vérifiée. L’utilisateur doit terminer l’authentification depuis Connexions.
+Le compte ChatGPT personnel dispose du parcours officiel d’autorisation et d’un adaptateur Codex isolé par utilisateur. Le 27/09, la connexion du compte de recette a été vérifiée et une inférence réelle a répondu au schéma JSON minimal attendu après correction de l’accès réseau du processus. Sur Render, le parcours utilise un code à valider chez OpenAI. Le cache d’authentification propre à chaque utilisateur est sauvegardé chiffré en base distante et restauré après redémarrage ; la déconnexion le supprime. Cette restauration est testée avec des identifiants synthétiques ; le parcours sur le site publié reste à vérifier.
 
 Dust Europe et Pipelex MCP ont des sessions OAuth utilisables. Le 26/09, les outils nécessaires aux parcours avec validation ont été accordés dans Passage : `create_conversation`, `get_conversation_messages` et `list_conversations` pour Dust Europe ; `pipelex_run` pour Pipelex, en plus des lectures déjà actives. Le coordinateur prépare une carte avant chaque écriture externe. L’unique ancien message de test Dust a atteint le plafond mensuel de dépense programmatique du workspace ; aucune inférence Dust fonctionnelle n’est donc démontrée. Pipelex donne accès en lecture au catalogue et aux signatures ; la méthode « Passage — Recherche doctorale » y est enregistrée et validée. La commande vocale ou écrite « Demande à Pipelex de… » vérifie son contrat via `pipelex_show_method` avant de préparer une carte de validation ; aucun vrai `pipelex_run` n'a encore été lancé. Les moteurs historiques directs Dust API/Pipelex API exigent leurs propres clés et méthodes publiées ; ils ne partagent pas automatiquement les sessions OAuth MCP.
 
@@ -374,3 +374,10 @@ Gradium accepte une clé créée pour le POC, sauvegardée dans les réglages ch
 ### 13.2 Services demandés pour le doctorant
 
 Demande utilisateur du 25/09 : Passage devrait aider le doctorant dans l’écriture de sa thèse, la préparation et l’analyse d’expériences, les simulations et la création de programmes informatiques dédiés. Le POC produit désormais des propositions structurées pour ces quatre usages et les conserve dans le projet ; un seul modèle de simulation batterie s'exécute réellement. L'import de documents et données propres au projet, l'exécution contrôlée de code généré ou d'autres modèles scientifiques, la connexion d'équipements expérimentaux et la vérification automatique des références restent à définir et à réaliser avant d'annoncer ces capacités comme disponibles.
+
+
+### 13.3 Agent Jinkō et équipes (27/09/2026)
+
+Depuis Connexions, chaque utilisateur enregistre sa clé et son identifiant de projet Jinkō. Passage vérifie leur correspondance via le SDK officiel 1.12.1 avant de les conserver chiffrés. Le bouton de création exige également une connexion ChatGPT valide et crée un agent personnel via la doctrine du Facilitator. Un second clic réutilise l’agent existant. Le cerveau peut choisir jusqu’à trois lectures de modèles, d’essais, de diagnostics ou de résultats existants ; le harnais vérifie les identifiants, borne les données et conserve les observations dans la trace. Il ne lance ni ne modifie d’essai. Aucun compte Jinkō réel n’est encore configuré dans la recette ; les contrats SDK et l’isolation sont testés sur des réponses contrôlées.
+
+Mes équipes permet de créer un laboratoire, une équipe de recherche ou une entreprise. Les invitations se partagent manuellement ; aucun email n’est envoyé automatiquement. Le destinataire se connecte, consulte l’équipe proposée et accepte. Les liens expirés, révoqués, déjà consommés ou utilisés par une autre adresse sont refusés. Les agents personnels conservent leur propriétaire lors d’une modification et restent inaccessibles aux autres utilisateurs, y compris à un autre administrateur.

@@ -86,6 +86,18 @@ def extract_json(text):
         raise IntegrationError('Le moteur a renvoyé un texte qui ne respecte pas le contrat JSON. Le résultat précédent est conservé.')
 
 def direct(agent, prompt, context, schema, tool_specs, invoke, trace):
+    jinko_usage = None
+    if 'jinko.read' in agent.get('tools', []):
+        from . import jinko_bridge
+        context, jinko_usage = jinko_bridge.enrich(agent, prompt, context,
+            lambda instructions, data, contract: _direct(agent, instructions, data, contract, [], None, trace), trace)
+    result, usage = _direct(agent, prompt, context, schema, tool_specs, invoke, trace)
+    if jinko_usage is not None:
+        usage = {**usage, 'jinko': jinko_usage}
+    return result, usage
+
+
+def _direct(agent, prompt, context, schema, tool_specs, invoke, trace):
     if agent['provider'] == 'codex':
         from . import auth, codex_brain
         if agent.get('connector_ids'):

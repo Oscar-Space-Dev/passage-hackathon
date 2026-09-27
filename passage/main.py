@@ -15,6 +15,7 @@ from pydantic import ValidationError
 from . import agents, creator, integrations, sources, store, auth, google_login, projects, partner_mcp, voice, voice_live, voice_codex, codex_brain, workflows, diagrams, latitude, guide
 from .schemas import (AgentInput, ConnectorInput, CorrectionInput, DecisionInput, ImportInput,
                       ProgrammeInput, ProposalInput, RunInput, VisibilityInput)
+from . import jinko_bridge, teams
 
 POOL = concurrent.futures.ThreadPoolExecutor(max_workers=3, thread_name_prefix='passage')
 Role = Annotated[str, Header(alias='X-Passage-Role')]
@@ -53,6 +54,8 @@ app.include_router(voice_live.router)
 app.include_router(voice_codex.router)
 app.include_router(codex_brain.router)
 app.include_router(guide.router)
+app.include_router(jinko_bridge.router)
+app.include_router(teams.router)
 STATIC = Path(__file__).parent / 'static'
 GRADBOT_ASSETS = Path(__import__('gradbot').__file__).parent / 'js_audio'
 
@@ -347,8 +350,10 @@ def check_agent(body: AgentInput, role: Role = 'admin'):
 @app.get('/api/agents/{identifier}')
 def get_agent(identifier: str, role: Role = 'admin'):
     a = item('agent', identifier)
-    if role != 'admin' and a.get('owner_id') != auth.current()['id']:
+    if not agents.visible(a, auth.current()):
         raise HTTPException(404, 'Agent introuvable.')
+    if role != 'admin' and a.get('owner_id') != auth.current()['id']:
+        raise HTTPException(403, 'Administration requise pour ouvrir un agent partagé.')
     return {'agent': a, 'assembled': agents.assembled(a), 'control': agents.control(a), 'live_control': agents.control(a, True),
             'revisions': [r for r in store.all_of('revision') if r['agent_id'] == identifier]}
 
@@ -362,12 +367,15 @@ def save_agent(body, identifier=None):
         if missing:
             raise HTTPException(422, 'Agent incomplet : ' + ' ; '.join(missing))
     a.update(id=identifier or store.uid('agent_'), revision=(previous or {}).get('revision', 0) + 1)
+    if previous and previous.get('owner_id'):
+        a['owner_id'] = previous['owner_id']
     for cid in a['connector_ids']:
         item('connector', cid)
     with store.transaction() as c:
         if a['active'] and a['role'] != 'research_task':
             for other in store.all_of('agent'):
-                if other['role'] == a['role'] and other['id'] != a['id'] and other['active']:
+                if (other['role'] == a['role'] and other['id'] != a['id'] and other['active']
+                        and other.get('owner_id') == a.get('owner_id')):
                     other['active'] = False
                     store.put('agent', other, c)
         store.put('agent', a, c)
@@ -383,14 +391,17 @@ def create_agent(body: AgentInput, role: Role = 'admin'):
 @app.put('/api/agents/{identifier}')
 def update_agent(identifier: str, body: AgentInput, role: Role = 'admin'):
     require(role, {'admin'})
-    item('agent', identifier)
+    if not agents.visible(store.get('agent', identifier), auth.current()):
+        raise HTTPException(404, 'Agent introuvable.')
     return save_agent(body, identifier)
 
 @app.get('/api/agents/{identifier}/export/{target}')
 def export_agent(identifier: str, target: str, role: Role = 'admin'):
     a = item('agent', identifier)
-    if role != 'admin' and a.get('owner_id') != auth.current()['id']:
+    if not agents.visible(a, auth.current()):
         raise HTTPException(404, 'Agent introuvable.')
+    if role != 'admin' and a.get('owner_id') != auth.current()['id']:
+        raise HTTPException(403, 'Administration requise pour exporter un agent partagé.')
     if target == 'pipelex':
         return Response(agents.method(a), media_type='text/plain', headers={'Content-Disposition': f'attachment; filename="{a["role"]}.mthds"'})
     if target == 'dust':
@@ -403,6 +414,8 @@ def export_agent(identifier: str, target: str, role: Role = 'admin'):
 def publish_dust(identifier: str, role: Role = 'admin'):
     require(role, {'admin'})
     a = copy.deepcopy(item('agent', identifier))
+    if not agents.visible(a, auth.current()):
+        raise HTTPException(404, 'Agent introuvable.')
     def publish(trace):
         trace('Projection de la définition locale dans Dust')
         remote_id = integrations.dust_publish(a, agents.assembled(a))

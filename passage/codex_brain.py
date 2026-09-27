@@ -23,10 +23,66 @@ def user_directory(user_id):
     return store.db_path().parent / 'runtime' / 'chatgpt' / key
 
 
+def hosted_login():
+    return bool(os.environ.get('RENDER_EXTERNAL_URL') or os.environ.get('PASSAGE_REQUIRE_REMOTE_DB') == '1')
+
+
+def auth_cache_enabled():
+    return store.remote_enabled()
+
+
+def cache_auth(user_id):
+    """Persist only this Passage user's CLI credentials, encrypted like MCP tokens."""
+    if not auth_cache_enabled():
+        return
+    with LOCK:
+        path = user_directory(user_id) / 'home' / 'auth.json'
+        try:
+            raw = path.read_bytes()
+        except FileNotFoundError:
+            return
+        if len(raw) > 128000:
+            raise integrations.IntegrationError('Le fichier de connexion ChatGPT dépasse la taille autorisée.')
+        try:
+            if not isinstance(json.loads(raw), dict):
+                return
+        except (ValueError, UnicodeDecodeError):
+            return  # The CLI may still be replacing the file; the next status will retry.
+        digest = hashlib.sha256(raw).hexdigest()
+        saved = store.get('chatgpt_account', user_id)
+        if saved and saved.get('sha256') == digest:
+            return
+        from .partner_mcp import cipher
+        store.put('chatgpt_account', {'id': user_id, 'sha256': digest,
+            'encrypted': cipher().encrypt(raw).decode(), 'updated_at': store.now()})
+
+
+def restore_auth(user_id):
+    if not auth_cache_enabled():
+        return
+    with LOCK:
+        path = user_directory(user_id) / 'home' / 'auth.json'
+        if path.exists():
+            return
+        saved = store.get('chatgpt_account', user_id)
+        if not saved:
+            return
+        from .partner_mcp import cipher
+        raw = cipher().decrypt(saved['encrypted'].encode())
+        if not isinstance(json.loads(raw), dict):
+            raise integrations.IntegrationError('La connexion ChatGPT sauvegardée est invalide.')
+        path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        temporary = path.with_suffix('.restore')
+        temporary.write_bytes(raw)
+        temporary.chmod(0o600)
+        temporary.replace(path)
+
+
 def configured():
     user = auth.CURRENT_USER.get()
     return bool(user and shutil.which('codex') and
-                (user_directory(user['id']) / 'home' / 'auth.json').exists())
+                ((user_directory(user['id']) / 'home' / 'auth.json').exists()
+                 or (auth_cache_enabled() and store.get('chatgpt_account', user['id']))))
 
 
 class CodexClient:
@@ -40,6 +96,7 @@ class CodexClient:
         self.home = self.root / 'home'
         self.work.mkdir(parents=True, exist_ok=True)
         self.home.mkdir(parents=True, exist_ok=True)
+        restore_auth(user_id)
         # This user gets an independent login. Never import the desktop host's credentials.
         (self.home / 'config.toml').write_text('cli_auth_credentials_store = "file"\n', encoding='utf-8')
         environment = {k:v for k,v in os.environ.items() if k.upper() in {
@@ -174,6 +231,7 @@ class CodexClient:
                         if params.get('turn',{}).get('status')!='completed':
                             raise integrations.IntegrationError('Le tour Codex a échoué ou a été interrompu. Vérifiez les limites de votre compte.')
                         result=integrations.extract_json('\n'.join(output))
+                        cache_auth(self.user_id)
                         return result,{'actual_model':selected_model,'billing_source':'Compte ChatGPT · Codex','codex_thread_id':thread_id}
                 time.sleep(.1)
             raise integrations.IntegrationError('Codex a dépassé le délai de la mission.')
@@ -220,10 +278,12 @@ def account_with_reconnect(user_id, engine):
 @router.get('/status')
 def status():
     user_id=auth.current()['id']
+    login_options = {'browser_login_available': not hosted_login(),
+                     'persistent_connection': auth_cache_enabled()}
     if not shutil.which('codex'):
-        return {'installed':False,'connected':False,'account':None}
-    if not user_directory(user_id).exists():
-        return {'installed':True,'connected':False,'account':None}
+        return {**login_options,'installed':False,'connected':False,'account':None}
+    if not user_directory(user_id).exists() and not (auth_cache_enabled() and store.get('chatgpt_account', user_id)):
+        return {**login_options,'installed':True,'connected':False,'account':None}
     try:
         engine=client(user_id)
         engine, account=account_with_reconnect(user_id, engine)
@@ -231,8 +291,9 @@ def status():
         if connected:
             engine.login=None
             engine.login_created_at=0.0
+            cache_auth(user_id)
         limits=engine.request('account/rateLimits/read') if connected else None
-        return {'installed':True,'connected':connected,'account':account,'limits':limits,
+        return {**login_options,'installed':True,'connected':connected,'account':account,'limits':limits,
                 'pending_login':engine.login if not connected else None}
     except integrations.IntegrationError as exc:
         raise HTTPException(502,str(exc))
@@ -267,7 +328,7 @@ def begin_login(kind):
 
 @router.post('/connect')
 def connect():
-    return begin_login('chatgpt')
+    return begin_login('chatgptDeviceCode' if hosted_login() else 'chatgpt')
 
 
 @router.post('/connect-device')
@@ -278,12 +339,19 @@ def connect_device():
 @router.post('/disconnect')
 def disconnect():
     try:
-        engine=client(auth.current()['id'])
-        if engine.mission_lock.locked():
+        user_id=auth.current()['id']
+        engine=client(user_id)
+        if not engine.mission_lock.acquire(blocking=False):
             raise HTTPException(409,'Attendez la fin de la mission ChatGPT avant de déconnecter ce compte.')
-        engine.request('account/logout')
-        engine.login=None
-        engine.login_created_at=0.0
+        try:
+            with LOCK:
+                engine.request('account/logout')
+                (user_directory(user_id) / 'home' / 'auth.json').unlink(missing_ok=True)
+                store.remove('chatgpt_account', user_id)
+                engine.login=None
+                engine.login_created_at=0.0
+        finally:
+            engine.mission_lock.release()
         return {'ok':True}
     except integrations.IntegrationError as exc:
         raise HTTPException(502,str(exc))

@@ -28,13 +28,15 @@ Le déploiement Render exige une base Turso externe pour conserver comptes et pr
 | Marguerite | Conversation personnelle ; création de projets, tâches, schémas et spécialistes après validation | Accepter ou refuser chaque plan |
 | Voix | Transcription et synthèse Gradium en dialogue continu | Autoriser le micro et vérifier la transcription |
 | Schémas | Dessin local basé sur Excalidraw ; brouillon de protocole ou `.mthds` | Relire et publier la méthode séparément |
+| Équipes | Invitation par lien personnel, annuaire et partage explicite des tâches | Accepter l’invitation ; choisir les dossiers partagés |
+| Jinkō SDK | Lectures de modèles, états, diagnostics et résultats par un agent personnel ChatGPT | Connecter le projet ; relire les conclusions |
 | Dust / Pipelex | Comptes MCP OAuth, catalogue d’outils accordés et appels contrôlés | Accorder les outils et approuver les écritures |
 
-**Limites visibles :** Passage prépare des expériences, simulations et programmes, mais ne réalise pas une manipulation physique ni ne valide un résultat scientifique. Un export `.mthds` n’est pas une méthode Pipelex publiée. Les API de moteur Dust et Pipelex demandent des clés distinctes de leurs connexions MCP OAuth. La clé API OpenAI est facultative et facturée séparément de l’abonnement ChatGPT. Jinkō est en cours d’intégration via son SDK.
+**Limites visibles :** Passage prépare des expériences, simulations et programmes, mais ne réalise pas une manipulation physique ni ne valide un résultat scientifique. Un export `.mthds` n’est pas une méthode Pipelex publiée. Les API de moteur Dust et Pipelex demandent des clés distinctes de leurs connexions MCP OAuth. La clé API OpenAI est facultative et facturée séparément de l’abonnement ChatGPT. L’adaptateur Jinkō utilise le SDK officiel 1.12.1 ; les tests automatisés utilisent des réponses contrôlées. Un essai sur un vrai projet Jinkō reste à effectuer avec une clé fournie par son propriétaire. Le lancement et la modification d’essais Jinkō ne sont pas encore proposés.
 
 ## Lancer localement
 
-Prérequis : Python 3.11 ou plus, Node.js et le CLI officiel Codex si vous souhaitez utiliser votre compte ChatGPT. La consultation des écrans et des données initiales reste possible sans fournisseur LLM.
+Prérequis : Python 3.12 recommandé (comme Render), Node.js et le CLI officiel Codex si vous souhaitez utiliser votre compte ChatGPT. La consultation des écrans et des données initiales reste possible sans fournisseur LLM. Utilisez un environnement virtuel propre : le SDK Jinkō récent et certains outils CLI Pipelex ont des contraintes de dépendances distinctes ; les connexions Pipelex de Passage passent par HTTP/MCP et ne nécessitent pas ce CLI.
 
 ```powershell
 python -m venv .venv
@@ -58,6 +60,7 @@ Utilisateur ── Passage ── Marguerite (plan puis approbation)
                     ├── Gradium (transcription et voix)
                     ├── Agents à harnais versionné ── tâches R1–R3
                     ├── Dust / Pipelex via MCP OAuth (outils accordés)
+                    ├── Jinkō SDK personnel (lectures choisies par l’agent)
                     ├── Excalidraw local → protocole / brouillon .mthds
                     └── SQLite locale ou Turso distant (comptes, projets, preuves, historique)
 ```
@@ -68,11 +71,15 @@ Les paramètres optionnels sont documentés dans [.env.example](.env.example). N
 
 ## Aperçu Render
 
-[render.yaml](render.yaml) décrit un service Docker **Free** avec `/api/health` comme sonde et `PASSAGE_PUBLIC_SIGNUP=1`. Configurez `TURSO_DATABASE_URL` (format `libsql://` pour la base créée sur Turso Cloud), `TURSO_AUTH_TOKEN` et une clé Fernet stable `PASSAGE_ENCRYPTION_KEY` dans les variables privées Render. Le serveur refuse de démarrer sans base distante. Comptes, projets, notices, conversations, connexions chiffrées et fichiers de travail sont conservés dans Turso ; le disque Render ne sert que de cache. Chaque évaluateur crée son propre compte et relie ses propres fournisseurs. Les identifiants de l’installation locale ne sont pas transférés. La session locale du CLI Codex reste sur le disque éphémère : une reconnexion ChatGPT peut être nécessaire après une mise en veille.
+[render.yaml](render.yaml) décrit un service Docker **Free** avec `/api/health` comme sonde et `PASSAGE_PUBLIC_SIGNUP=1`. Configurez `TURSO_DATABASE_URL` (format `libsql://` pour la base créée sur Turso Cloud), `TURSO_AUTH_TOKEN` et une clé Fernet stable `PASSAGE_ENCRYPTION_KEY` dans les variables privées Render. Le serveur refuse de démarrer sans base distante. Comptes, projets, notices, conversations, connexions chiffrées et fichiers de travail sont conservés dans Turso ; le disque Render ne sert que de cache. Chaque évaluateur crée son propre compte et relie ses propres fournisseurs. Les identifiants de l’installation locale ne sont pas transférés. En déploiement, ChatGPT se connecte par code à valider sur la page officielle OpenAI. Son cache d’authentification personnel est sauvegardé chiffré dans Turso puis restauré après perte du cache serveur ; la déconnexion supprime cette sauvegarde. Une expiration ou révocation par OpenAI peut toujours demander une reconnexion. Le parcours par code peut devoir être activé dans les paramètres de sécurité ChatGPT ([documentation officielle](https://learn.chatgpt.com/docs/auth)). La restauration est vérifiée en test ; la recette réelle sur Render reste à effectuer.
 
 Pour produire la clé Fernet, lancez `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` et copiez le résultat uniquement dans les variables privées Render. Gardez cette valeur : en la changeant, les connexions OAuth déjà enregistrées ne seront plus déchiffrables. Les notices de thèses stockent des métadonnées et des liens vers la source ; le projet ne réhéberge pas tous les manuscrits.
 
-La connexion Google est optionnelle : elle n’apparaît que si `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` sont configurés avec l’URL de retour `/api/auth/google/callback`. L’inscription par email et mot de passe fonctionne sans Google. L’aperçu ne dispose pas encore de récupération de mot de passe ni d’invitations d’équipe.
+La connexion Google est optionnelle : elle n’apparaît que si `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` sont configurés avec l’URL de retour `/api/auth/google/callback`. L’inscription par email et mot de passe fonctionne sans Google. L’aperçu ne dispose pas encore de récupération de mot de passe. Dans **Mes équipes**, créez une équipe puis préparez un lien d’invitation valable sept jours. Transmettez-le vous-même au destinataire : aucun email automatique n’est envoyé. L’acceptation exige un compte avec l’adresse invitée. Une équipe ne donne aucun accès implicite aux projets ou conversations ; partagez les tâches individuellement depuis leur dossier.
+
+## Connecter un agent Jinkō
+
+Dans **Connexions → Mon projet Jinkō**, saisissez la clé API et l’identifiant du projet. Passage vérifie leur association puis conserve la clé chiffrée pour votre seul compte. Reliez aussi ChatGPT, puis cliquez **Créer mon agent Jinkō** : le harnais applique les six étapes du Facilitator et, si un projet Passage est sélectionné, rejoint son équipe. L’agent peut choisir jusqu’à trois lectures SDK par appel de raisonnement. Les observations sont transmises à son cerveau et les opérations apparaissent dans les traces. Aucun essai Jinkō n’est créé, modifié ou lancé par ces outils.
 
 ## Documents utiles
 
