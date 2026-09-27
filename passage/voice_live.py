@@ -1,6 +1,7 @@
 """Authenticated, project-scoped streaming voice conversation with Gradbot."""
 import asyncio
 import json
+import os
 import re
 import threading
 from urllib.parse import urlparse
@@ -166,7 +167,12 @@ async def live_voice(socket: WebSocket, project_id: str | None = None, guide_mod
             chosen_voice_model = voice_model(user['id'], brain['model'])
             codex_token = voice_codex.register(user['id'], chosen_voice_model,
                                                mode='guide' if guide_mode else 'project')
-            llm_base_url = f'http://127.0.0.1:{getattr(socket.url, "port", None) or 8088}/internal/voice-codex/v1'
+            # The public HTTPS port belongs to Render's proxy, not to Uvicorn.
+            server = getattr(socket, 'scope', {}).get('server')
+            internal_port = int(os.environ.get('PORT') or (server[1] if server else 8088))
+            if not 1 <= internal_port <= 65535:
+                raise integrations.IntegrationError('Port interne du serveur vocal invalide.')
+            llm_base_url = f'http://127.0.0.1:{internal_port}/internal/voice-codex/v1'
             llm_api_key = codex_token
         else:
             llm_base_url = integrations.env('OLLAMA_BASE_URL', 'http://127.0.0.1:11434').rstrip('/') + '/v1'

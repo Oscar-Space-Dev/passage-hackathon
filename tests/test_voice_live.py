@@ -249,7 +249,8 @@ class LiveVoiceTests(unittest.TestCase):
             ('new-project', 'assistant', 'Projet créé.')])
 
     def test_marguerite_voice_uses_guide_conversation_and_keeps_plan_for_screen_review(self):
-        socket = Socket()
+        socket = Socket('https://passage.example.test')
+        socket.url = SimpleNamespace(netloc='passage.example.test', port=443)
         user = {'id': 'one'}
         project = {'id': 'project', 'owner_id': 'one'}
         calls = []
@@ -272,6 +273,8 @@ class LiveVoiceTests(unittest.TestCase):
         async def session(websocket, **options):
             config = options['on_start']({'type': 'start'})
             self.assertIn('Marguerite', config.instructions)
+            self.assertEqual(options['run_kwargs']['llm_base_url'],
+                             'http://127.0.0.1:10000/internal/voice-codex/v1')
             self.assertEqual(config.tools[0].name, 'parler_a_marguerite')
             for index, phrase in enumerate(['Bonjour.', 'Prépare mon protocole.']):
                 await websocket.send_json({'type': 'user_text', 'text': phrase,
@@ -283,7 +286,8 @@ class LiveVoiceTests(unittest.TestCase):
             self.assertEqual([row['plan_pending'] for row in websocket.sent
                               if row.get('type') == 'guide_update'], [False, True])
 
-        with patch.object(voice_live.auth, 'authenticate', return_value=(user, {'id': 'session'})), \
+        with patch.dict(voice_live.os.environ, {'PORT': '10000'}), \
+             patch.object(voice_live.auth, 'authenticate', return_value=(user, {'id': 'session'})), \
              patch.object(voice_live.store, 'get', return_value=project), \
              patch.object(voice_live.voice, 'credentials', return_value=('secret', 'voice', 'personal')), \
              patch.object(voice_live.codex_brain, 'configured', return_value=True), \
