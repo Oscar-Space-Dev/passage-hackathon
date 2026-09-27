@@ -43,10 +43,10 @@ def password_hash(password, salt=None):
 
 def authenticate(request):
     raw = request.cookies.get(COOKIE, '')
-    session = store.get('session', digest(raw)) if raw else None
+    user, session = store.session_user(digest(raw)) if raw else (None, None)
     if not session or session['expires'] < time.time():
         return None, None
-    return store.get('user', session['user_id']), session
+    return user, session
 
 def issue(user, request):
     token = secrets.token_urlsafe(32)

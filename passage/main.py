@@ -173,6 +173,8 @@ def health():
     return {'status': 'ok', 'name': 'Passage', 'version': '0.1.0'}
 
 @app.get('/api/state')
+@store.read_snapshot('installation_setting', 'thesis', 'report', 'visit', 'proposal',
+                     'settings', 'programme', 'agent', 'project')
 @integrations.configuration_snapshot()
 def state(role: Role = 'lab'):
     require(role, {'lab', 'researcher', 'company', 'admin'})

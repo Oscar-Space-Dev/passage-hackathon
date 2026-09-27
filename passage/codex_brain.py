@@ -120,8 +120,12 @@ class CodexClient:
         self.login = None
         self.login_created_at = 0.0
         threading.Thread(target=self.read, daemon=True, name='passage-chatgpt').start()
-        self.request('initialize', {'clientInfo':{'name':'passage','title':'Passage','version':'0.1.0'}})
-        self.send({'method':'initialized','params':{}})
+        try:
+            self.request('initialize', {'clientInfo':{'name':'passage','title':'Passage','version':'0.1.0'}})
+            self.send({'method':'initialized','params':{}})
+        except Exception:
+            self.close()
+            raise
 
     def send(self, message):
         with self.io_lock:
@@ -169,7 +173,8 @@ class CodexClient:
             self.send({'id':identifier,'method':method,'params':params or {}})
             result=waiter.get(timeout=timeout)
             if 'error' in result:
-                message=str(result['error'].get('message','')).splitlines()[0][:240]
+                lines = str(result['error'].get('message') or '').splitlines()
+                message = lines[0][:240] if lines else 'Le processus Codex a interrompu la connexion.'
                 raise integrations.IntegrationError(
                     f'Codex ne peut pas traiter {method}' + (f' : {message}' if message else '.'))
             return result.get('result',{})

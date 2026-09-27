@@ -542,6 +542,7 @@ def message(pid, role, text, **extra):
     return store.put('message', {'id': store.uid('msg_'), 'project_id': pid, 'role': role, 'text': text, 'at': store.now(), **extra})
 
 @router.get('')
+@store.read_snapshot('project', 'approval')
 def listing():
     projects = [p for p in store.all_of('project') if accessible(p)]
     counts = {project['id']: 0 for project in projects}
