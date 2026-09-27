@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: passage-hackathon
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: PASSAGE_DB
+        value: /tmp/passage.db
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: PASSAGE_PUBLIC_SIGNUP
+        value: "1"

@@ -1,0 +1,4 @@
+[
+  {"id":"pack-2027","name":"Pack 2027 — charge rapide en 20 minutes","description":"Concevoir un pack pour vélos électriques. En charge rapide, les cellules dépassent 45 °C et vieillissent deux fois plus vite. Limiter l'échauffement sans alourdir le pack. Valider la solution sur banc avant industrialisation.","company":"Vélia Mobilité — entreprise fictive","source":"demo"},
+  {"id":"circularite","name":"Seconde vie — diagnostic des cellules","description":"Évaluer l'état de santé de cellules lithium-ion usagées pour leur réemploi dans du stockage stationnaire. Réduire le coût de diagnostic et documenter les limites de sécurité.","company":"Vélia Mobilité — entreprise fictive","source":"demo"}
+]
