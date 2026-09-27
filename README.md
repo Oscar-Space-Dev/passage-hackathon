@@ -10,13 +10,21 @@ Projet réalisé pour le **X-IA Hackathon — Rise of Agents X**. L’éditeur d
 
 ## Essayer en trois minutes
 
-1. Ouvrez l’URL de l’aperçu Render une fois publiée, ou lancez l’application localement ci-dessous.
+1. Ouvrez [Passage sur Render](https://passage-hackathon.onrender.com/).
 2. Créez un compte **Doctorant/chercheur**, **Laboratoire** ou **Entreprise**. Chaque compte garde ses propres projets et conversations.
 3. Créez un projet, ouvrez **Travaux de recherche**, choisissez une tâche R1–R3 et parcourez ses étapes, questions et contrôles humains.
 4. Ouvrez **Marguerite** pour décrire un objectif. Elle propose un plan ; rien n’est exécuté avant **Valider et exécuter**.
 5. Pour une réponse d’agent réelle, reliez votre compte ChatGPT dans **Connexions**. Pour le dialogue vocal, configurez aussi Gradium.
 
 Le déploiement Render exige une base Turso externe pour conserver comptes et projets lors des redémarrages. N’y chargez pas de données confidentielles pendant le hackathon.
+
+**Inscription :** nom, email et mot de passe de 12 caractères minimum. La connexion Google n’est pas encore configurée sur cet aperçu. Les comptes créés sur une installation locale ne sont pas transférés sur le site public. Sur Render Free, un réveil après inactivité peut prendre une minute.
+
+**ChatGPT :** dans **Connexions**, lancez la connexion par code d’appareil, ouvrez la page OpenAI indiquée, puis saisissez le code affiché. Si OpenAI le demande, activez la connexion par code d’appareil dans les paramètres de sécurité de votre compte ChatGPT. Revenez dans Passage pour actualiser le statut. Chaque utilisateur connecte son propre compte.
+
+**Recette publique du 27 septembre 2026 :** deux inscriptions, création d’un projet et d’un fichier, sauvegarde d’un schéma, invitation liée à son destinataire et refus d’accès entre comptes ont été vérifiés sur Render. L’appartenance à une équipe ne partage pas automatiquement les projets privés.
+
+**Présentation :** [première vidéo illustrée avec voix Gradium, 77 secondes](https://github.com/Oscar-Space-Dev/passage-hackathon/blob/main/demo/Passage_demo_76s.mp4) · [dossier Word](https://github.com/Oscar-Space-Dev/passage-hackathon/blob/main/demo/Passage_dossier_hackathon.docx) · [scénario minuté](DEMO.md).
 
 ## Ce qui fonctionne
 
