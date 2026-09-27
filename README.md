@@ -6,6 +6,8 @@ Passage aide les doctorants à organiser leurs travaux, rédiger, préparer des 
 
 Projet réalisé pour le **X-IA Hackathon — Rise of Agents X**. L’éditeur d’agents s’inspire de la doctrine Super Skill Creator V4 du projet antérieur **Oscar-AI**, déclaré comme préexistant. Passage possède son propre code, ses contrats et ses contrôles.
 
+**Code source public :** [Oscar-Space-Dev/passage-hackathon](https://github.com/Oscar-Space-Dev/passage-hackathon).
+
 ## Essayer en trois minutes
 
 1. Ouvrez l’URL de l’aperçu Render une fois publiée, ou lancez l’application localement ci-dessous.
@@ -66,7 +68,7 @@ Les paramètres optionnels sont documentés dans [.env.example](.env.example). N
 
 ## Aperçu Render
 
-[render.yaml](render.yaml) décrit un service Docker **Free** avec `/api/health` comme sonde et `PASSAGE_PUBLIC_SIGNUP=1`. Configurez `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` et une clé Fernet stable `PASSAGE_ENCRYPTION_KEY` dans les variables privées Render. Le serveur refuse de démarrer sans base distante. Comptes, projets, notices, conversations, connexions chiffrées et fichiers de travail sont conservés dans Turso ; le disque Render ne sert que de cache. Chaque évaluateur crée son propre compte et relie ses propres fournisseurs. Les identifiants de l’installation locale ne sont pas transférés. La session locale du CLI Codex reste sur le disque éphémère : une reconnexion ChatGPT peut être nécessaire après une mise en veille.
+[render.yaml](render.yaml) décrit un service Docker **Free** avec `/api/health` comme sonde et `PASSAGE_PUBLIC_SIGNUP=1`. Configurez `TURSO_DATABASE_URL` (format `libsql://` pour la base créée sur Turso Cloud), `TURSO_AUTH_TOKEN` et une clé Fernet stable `PASSAGE_ENCRYPTION_KEY` dans les variables privées Render. Le serveur refuse de démarrer sans base distante. Comptes, projets, notices, conversations, connexions chiffrées et fichiers de travail sont conservés dans Turso ; le disque Render ne sert que de cache. Chaque évaluateur crée son propre compte et relie ses propres fournisseurs. Les identifiants de l’installation locale ne sont pas transférés. La session locale du CLI Codex reste sur le disque éphémère : une reconnexion ChatGPT peut être nécessaire après une mise en veille.
 
 Pour produire la clé Fernet, lancez `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` et copiez le résultat uniquement dans les variables privées Render. Gardez cette valeur : en la changeant, les connexions OAuth déjà enregistrées ne seront plus déchiffrables. Les notices de thèses stockent des métadonnées et des liens vers la source ; le projet ne réhéberge pas tous les manuscrits.
 

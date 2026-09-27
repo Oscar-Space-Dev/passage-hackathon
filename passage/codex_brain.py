@@ -31,6 +31,7 @@ def configured():
 
 class CodexClient:
     def __init__(self, user_id):
+        self.user_id = user_id
         executable = shutil.which('codex')
         if not executable:
             raise integrations.IntegrationError('Installez le CLI officiel Codex pour connecter votre compte ChatGPT.')
@@ -128,13 +129,15 @@ class CodexClient:
             except subprocess.TimeoutExpired:self.process.kill()
 
     def complete(self, model, prompt, context, schema):
+        engine, account = account_with_reconnect(self.user_id, self)
+        if engine is not self:
+            return engine.complete(model, prompt, context, schema)
+        if not account or account.get('type')!='chatgpt':
+            raise integrations.IntegrationError('Connectez votre compte ChatGPT dans Connexions.')
         if not self.mission_lock.acquire(timeout=480):
             raise integrations.IntegrationError('Votre compte ChatGPT est encore occupé après huit minutes. Réessayez cette mission.')
         thread_id=turn_id=None
         try:
-            account=self.request('account/read',{'refreshToken':False}).get('account')
-            if not account or account.get('type')!='chatgpt':
-                raise integrations.IntegrationError('Connectez votre compte ChatGPT dans Connexions.')
             selected_model=model
             if model=='auto':
                 available=self.request('model/list',{'limit':100,'includeHidden':False}).get('data',[])
@@ -191,6 +194,29 @@ def client(user_id):
         return current
 
 
+def account_with_reconnect(user_id, engine):
+    """Retry a safe account read with a fresh app-server after routing discovery fails."""
+    try:
+        return engine, engine.request('account/read', {'refreshToken':False}).get('account')
+    except integrations.IntegrationError as exc:
+        if 'workspace routing discovery failed' not in str(exc).casefold():
+            raise
+        key=(str(store.db_path()),user_id)
+        with LOCK:
+            if CLIENTS.get(key) is not engine:
+                replacement=client(user_id)
+            else:
+                if not engine.mission_lock.acquire(blocking=False):
+                    raise exc
+                try:
+                    engine.close()
+                    replacement=CodexClient(user_id)
+                    CLIENTS[key]=replacement
+                finally:
+                    engine.mission_lock.release()
+        return replacement, replacement.request('account/read', {'refreshToken':False}).get('account')
+
+
 @router.get('/status')
 def status():
     user_id=auth.current()['id']
@@ -200,7 +226,7 @@ def status():
         return {'installed':True,'connected':False,'account':None}
     try:
         engine=client(user_id)
-        account=engine.request('account/read',{'refreshToken':False}).get('account')
+        engine, account=account_with_reconnect(user_id, engine)
         connected=bool(account and account.get('type')=='chatgpt')
         if connected:
             engine.login=None
@@ -214,9 +240,9 @@ def status():
 
 def begin_login(kind):
     try:
-        engine=client(auth.current()['id'])
+        user_id=auth.current()['id']
+        engine, account=account_with_reconnect(user_id, client(user_id))
         with engine.login_lock:
-            account=engine.request('account/read',{'refreshToken':False}).get('account')
             if account and account.get('type')=='chatgpt':
                 engine.login=None
                 engine.login_created_at=0.0
@@ -266,8 +292,8 @@ def disconnect():
 @router.get('/models')
 def models():
     try:
-        engine=client(auth.current()['id'])
-        account=engine.request('account/read').get('account')
+        user_id=auth.current()['id']
+        engine, account=account_with_reconnect(user_id, client(user_id))
         if not account or account.get('type')!='chatgpt':
             raise HTTPException(409,'Connectez votre compte ChatGPT pour découvrir ses modèles.')
         result=[]

@@ -58,3 +58,21 @@ def test_remote_missing_encryption_key_fails_before_write(monkeypatch):
     monkeypatch.setenv('PASSAGE_ENCRYPTION_KEY', 'invalid-key')
     with pytest.raises(RuntimeError, match='clé Fernet valide'):
         store.init()
+
+
+def test_libsql_cloud_database_uses_its_official_driver(monkeypatch, tmp_path):
+    calls = []
+    remote_db = tmp_path / 'libsql-standin.db'
+
+    def fake_connect(*, database, auth_token):
+        calls.append((database, auth_token))
+        return sqlite3.connect(remote_db)
+
+    monkeypatch.setitem(sys.modules, 'libsql', SimpleNamespace(connect=fake_connect))
+    monkeypatch.setenv('TURSO_DATABASE_URL', 'libsql://passage-example.turso.io')
+    monkeypatch.setenv('TURSO_AUTH_TOKEN', 'test-only-token')
+    monkeypatch.setenv('PASSAGE_ENCRYPTION_KEY', Fernet.generate_key().decode())
+    store.init()
+    store.put('project', {'id': 'prj_libsql', 'name': 'Persistant'})
+    assert store.get('project', 'prj_libsql')['name'] == 'Persistant'
+    assert calls and all(item == ('libsql://passage-example.turso.io', 'test-only-token') for item in calls)

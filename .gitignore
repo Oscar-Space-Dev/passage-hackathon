@@ -3,6 +3,9 @@
 diagram-ui/node_modules/
 __pycache__/
 .pytest_cache/
+.tmp/
+demo/docx_render/
+demo/soffice_*/
 pytest-cache-files-*/
 pytest-catalog-*/
 .test-tmp-*/

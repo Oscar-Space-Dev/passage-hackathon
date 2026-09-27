@@ -29,10 +29,13 @@ def connect():
         token = os.environ.get('TURSO_AUTH_TOKEN')
         if not token:
             raise RuntimeError('TURSO_AUTH_TOKEN est requis pour la base distante.')
-        if not url.startswith('turso://'):
-            raise RuntimeError('TURSO_DATABASE_URL doit utiliser turso://.')
-        import turso_serverless
-        return turso_serverless.connect(url, auth_token=token)
+        if url.startswith('turso://'):
+            import turso_serverless
+            return turso_serverless.connect(url, auth_token=token)
+        if url.startswith('libsql://'):
+            import libsql
+            return libsql.connect(database=url, auth_token=token)
+        raise RuntimeError('TURSO_DATABASE_URL doit utiliser turso:// ou libsql://.')
     path = db_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(path, timeout=20)
